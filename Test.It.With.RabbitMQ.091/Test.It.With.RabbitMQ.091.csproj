@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net47</TargetFramework>
+        <Authors>Fredrik Arvidsson</Authors>
+        <Company />
+        <Copyright>Copyright ©  2017</Copyright>
+        <RootNamespace>Test.It.With.RabbitMQ._091</RootNamespace>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <LangVersion>7.1</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <LangVersion>7.1</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\External\rabbitmq-dotnet-client\projects\client\RabbitMQ.Client\RabbitMQ.Client.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Reference Include="Test.It.With.Amqp">
+        <HintPath>..\..\Testing.RabbitMQ\Test.It.With.Amqp\bin\Debug\net47\Test.It.With.Amqp.dll</HintPath>
+      </Reference>
+      <Reference Include="Test.It.With.Amqp.Protocol">
+        <HintPath>..\..\Testing.RabbitMQ\Test.It.With.Amqp.Protocol\bin\Debug\net47\Test.It.With.Amqp.Protocol.dll</HintPath>
+      </Reference>
+      <Reference Include="Test.It.With.Amqp.Protocol.091">
+        <HintPath>..\..\Testing.RabbitMQ\Test.It.With.Amqp.Protocol.091\bin\Debug\net47\Test.It.With.Amqp.Protocol.091.dll</HintPath>
+      </Reference>
+      <Reference Include="Test.It.With.Amqp.ProtocolGenerator">
+        <HintPath>..\..\Testing.RabbitMQ\Test.It.With.Amqp.Protocol.091\bin\Debug\net47\Test.It.With.Amqp.ProtocolGenerator.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+</Project>
