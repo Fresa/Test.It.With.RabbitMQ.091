@@ -36,11 +36,11 @@ namespace Test.It.With.RabbitMQ._091
             }
         }
 
-        public InboundFrame ReadFrame()
+        public Frame ReadFrame()
         {
-            return InboundFrame.ReadFrom(_reader);
+            return Frame.ReadFrom(_reader);
         }
-
+        
         public void SendHeader()
         {
             lock (_writer)
@@ -64,7 +64,7 @@ namespace Test.It.With.RabbitMQ._091
             }
         }
 
-        public void WriteFrame(OutboundFrame frame)
+        public void WriteFrame(Frame frame)
         {
             lock (_writer)
             {
@@ -73,7 +73,7 @@ namespace Test.It.With.RabbitMQ._091
             }
         }
 
-        public void WriteFrameSet(IList<OutboundFrame> frames)
+        public void WriteFrameSet(IList<Frame> frames)
         {
             lock (_writer)
             {
