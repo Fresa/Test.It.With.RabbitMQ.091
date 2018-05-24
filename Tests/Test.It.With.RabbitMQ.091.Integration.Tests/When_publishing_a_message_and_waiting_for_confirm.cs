@@ -12,9 +12,10 @@ using Test.It.With.RabbitMQ.Integration.Tests.TestApplication;
 using Test.It.With.RabbitMQ.Integration.Tests.TestApplication.Specifications;
 using Test.It.With.RabbitMQ.Integration.Tests.XUnit;
 using Test.It.With.RabbitMQ._091;
+using Test.It.With.RabbitMQ._091.Methods;
 using Xunit;
 using Xunit.Abstractions;
-using Basic = Test.It.With.RabbitMQ._091.Basic;
+using Basic = Test.It.With.RabbitMQ._091.Methods.Basic;
 
 namespace Test.It.With.RabbitMQ.Integration.Tests
 {
