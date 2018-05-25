@@ -1,7 +1,7 @@
 using Test.It.With.Amqp.Protocol;
 using Test.It.With.Amqp.Protocol.Expectations;
 
-namespace Test.It.With.RabbitMQ._091
+namespace Test.It.With.RabbitMQ091
 {
     internal class RabbitMq091ProtocolResolver : IProtocolResolver
     {
@@ -9,7 +9,7 @@ namespace Test.It.With.RabbitMQ._091
 
         private RabbitMq091ProtocolResolver()
         {
-            _amqpResolver = Amqp091ProtocolResolver.Create();
+            _amqpResolver = Amqp091.Protocol.Amqp091.ProtocolResolver;
             AmqpReaderFactory = new RabbitMq091ReaderFactory();
             AmqpWriterFactory = new RabbitMq091WriterFactory();
             Protocol = new RabbitMq091ProtocolGeneratorDecorator(_amqpResolver.Protocol);

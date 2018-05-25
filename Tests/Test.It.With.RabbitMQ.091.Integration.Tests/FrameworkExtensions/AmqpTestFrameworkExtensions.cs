@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp.Protocol;
-using Test.It.With.Amqp.Protocol._091;
-using Test.It.With.RabbitMQ.Integration.Tests.Common;
+using Test.It.With.Amqp091.Protocol.Generator;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.FrameworkExtensions
+namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
 {
     public static class AmqpTestFrameworkExtensions
     {

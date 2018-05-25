@@ -2,7 +2,7 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.TestApplication
+namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 {
     internal class RabbitMqMessageConsumer<TMessage> : IMessageConsumer
     {

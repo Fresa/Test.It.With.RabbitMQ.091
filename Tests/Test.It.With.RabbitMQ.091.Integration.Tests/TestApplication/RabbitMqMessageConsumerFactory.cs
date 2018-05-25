@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using RabbitMQ.Client;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.TestApplication
+namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 {
     internal class RabbitMqMessageConsumerFactory : IMessageConsumerFactory
     {

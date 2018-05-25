@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Should.Fluent.Model;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.Assertion
+namespace Test.It.With.RabbitMQ091.Integration.Tests.Assertion
 {
     public class ExtendedContain<T> : Contain<T>
     {

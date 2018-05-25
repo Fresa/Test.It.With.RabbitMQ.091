@@ -7,24 +7,20 @@ using Should.Fluent;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
-using Test.It.With.Amqp.Protocol;
-using Test.It.With.Amqp.Protocol._091;
-using Test.It.With.RabbitMQ.Integration.Tests.Assertion;
-using Test.It.With.RabbitMQ.Integration.Tests.FrameworkExtensions;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication.Specifications;
-using Test.It.With.RabbitMQ.Integration.Tests.XUnit;
-using Test.It.With.RabbitMQ._091;
+using Test.It.With.Amqp091.Protocol.Generator;
+using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
+using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
+using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
+using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
+using Test.It.With.RabbitMQ091.Integration.Tests.XUnit;
 using Xunit;
 using Xunit.Abstractions;
-using Basic = Test.It.With.Amqp.Protocol._091.Basic;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests
+namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_receiving_messages_over_rabbitmq
     {
-        public class When_consuming_messages : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<
-            TestApplicationBuilder<MessageConsumingApplication>>>
+        public class When_consuming_messages : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<TestApplicationBuilder<MessageConsumingApplication>>>
         {
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangesDeclared = new ConcurrentBag<MethodFrame<Exchange.Declare>>();
             private readonly ConcurrentBag<MethodFrame<Queue.Declare>> _queuesDeclared = new ConcurrentBag<MethodFrame<Queue.Declare>>();
@@ -55,7 +51,7 @@ namespace Test.It.With.RabbitMQ.Integration.Tests
                     }
                 }
 
-                var testServer = new AmqpTestFramework(Amqp091.ProtocolResolver);
+                var testServer = new AmqpTestFramework(Amqp091.Protocol.Amqp091.ProtocolResolver);
                 testServer
                     .WithDefaultProtocolHeaderNegotiation()
                     .WithDefaultSecurityNegotiation(heartbeatInterval: TimeSpan.FromSeconds(5))

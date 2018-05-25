@@ -4,6 +4,7 @@
         <Authors>Fredrik Arvidsson</Authors>
         <Company />
         <Copyright>Copyright ©  2017</Copyright>
+        <RootNamespace>Test.It.With.RabbitMQ091.Integration.Tests</RootNamespace>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <LangVersion>7.1</LangVersion>
@@ -33,14 +34,14 @@
       <Reference Include="Test.It.With.Amqp">
         <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp\bin\Debug\net47\Test.It.With.Amqp.dll</HintPath>
       </Reference>
+      <Reference Include="Test.It.With.Amqp.091.Protocol">
+        <HintPath>..\..\..\Test.It.With.AMQP.091\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.dll</HintPath>
+      </Reference>
+      <Reference Include="Test.It.With.Amqp.091.Protocol.Generator">
+        <HintPath>..\..\..\Test.It.With.AMQP.091\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.Generator.dll</HintPath>
+      </Reference>
       <Reference Include="Test.It.With.Amqp.Protocol">
-        <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp.Protocol\bin\Debug\net47\Test.It.With.Amqp.Protocol.dll</HintPath>
-      </Reference>
-      <Reference Include="Test.It.With.Amqp.Protocol.091">
-        <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp.Protocol.091\bin\Debug\net47\Test.It.With.Amqp.Protocol.091.dll</HintPath>
-      </Reference>
-      <Reference Include="Test.It.With.Amqp.ProtocolGenerator">
-        <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp.ProtocolGenerator\bin\Debug\net47\Test.It.With.Amqp.ProtocolGenerator.dll</HintPath>
+        <HintPath>..\..\..\Test.It.With.AMQP.Protocol\Test.It.With.Amqp.Protocol\bin\Debug\net47\Test.It.With.Amqp.Protocol.dll</HintPath>
       </Reference>
     </ItemGroup>
 </Project>

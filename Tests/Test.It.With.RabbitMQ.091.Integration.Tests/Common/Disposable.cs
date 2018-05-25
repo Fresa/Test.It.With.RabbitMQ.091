@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.Common
+namespace Test.It.With.RabbitMQ091.Integration.Tests.Common
 {
     public class Disposable : IDisposable
     {

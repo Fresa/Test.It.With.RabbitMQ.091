@@ -1,7 +1,7 @@
 ﻿using System;
 using Test.It.With.Amqp.Protocol;
 
-namespace Test.It.With.RabbitMQ._091.Methods
+namespace Test.It.With.RabbitMQ091.Methods
 {
     public class Confirm
     {

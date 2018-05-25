@@ -2,7 +2,7 @@ using NLog;
 using NLog.Targets;
 using Xunit.Abstractions;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.XUnit
+namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
 {
     [Target("XUnit2")]
     public class XUnit2Target : TargetWithLayout

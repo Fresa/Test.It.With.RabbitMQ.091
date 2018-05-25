@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.TestApplication
+namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 {
     public class NewtonsoftSerializer : ISerializer
     {

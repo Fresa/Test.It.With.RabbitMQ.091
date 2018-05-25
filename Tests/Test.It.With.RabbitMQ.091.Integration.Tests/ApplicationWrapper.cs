@@ -1,8 +1,8 @@
 ﻿using System;
 using Test.It.While.Hosting.Your.Windows.Service;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication;
+using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests
+namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     internal class ApplicationWrapper : IWindowsService
     {

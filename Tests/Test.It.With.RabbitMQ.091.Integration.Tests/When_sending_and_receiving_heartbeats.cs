@@ -6,17 +6,14 @@ using Should.Fluent;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
-using Test.It.With.Amqp.Protocol;
-using Test.It.With.Amqp.Protocol._091;
-using Test.It.With.RabbitMQ.Integration.Tests.FrameworkExtensions;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication.Specifications;
-using Test.It.With.RabbitMQ.Integration.Tests.XUnit;
-using Test.It.With.RabbitMQ._091;
+using Test.It.With.Amqp091.Protocol.Generator;
+using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
+using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
+using Test.It.With.RabbitMQ091.Integration.Tests.XUnit;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests
+namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_sending_and_receiving_heartbeats_over_rabbitmq
     {
@@ -34,7 +31,7 @@ namespace Test.It.With.RabbitMQ.Integration.Tests
 
             protected override void Given(IServiceContainer container)
             {
-                var testServer = new AmqpTestFramework(Amqp091.ProtocolResolver);
+                var testServer = new AmqpTestFramework(Test.It.With.Amqp091.Protocol.Amqp091.ProtocolResolver);
 
                 testServer
                     .WithDefaultProtocolHeaderNegotiation()

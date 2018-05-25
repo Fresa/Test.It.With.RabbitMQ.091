@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using SimpleInjector;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.TestApplication.Specifications
+namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications
 {
     public class HeartbeatApplication : IApplication
     {

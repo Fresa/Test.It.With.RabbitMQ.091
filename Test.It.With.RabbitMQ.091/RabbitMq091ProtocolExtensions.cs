@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Test.It.With.Amqp.Protocol;
-using Test.It.With.RabbitMQ._091.Methods;
+using Test.It.With.RabbitMQ091.Methods;
 
-namespace Test.It.With.RabbitMQ._091
+namespace Test.It.With.RabbitMQ091
 {
     internal class RabbitMq091ProtocolExtensions
     {

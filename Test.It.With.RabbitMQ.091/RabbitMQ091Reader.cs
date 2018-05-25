@@ -1,7 +1,7 @@
 using System;
-using Test.It.With.Amqp.Protocol._091;
+using Test.It.With.Amqp091.Protocol;
 
-namespace Test.It.With.RabbitMQ._091
+namespace Test.It.With.RabbitMQ091
 {
     internal class RabbitMQ091Reader : Amqp091Reader
     {

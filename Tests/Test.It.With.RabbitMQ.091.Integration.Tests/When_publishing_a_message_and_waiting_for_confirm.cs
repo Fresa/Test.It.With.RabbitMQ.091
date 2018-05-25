@@ -5,30 +5,28 @@ using Should.Fluent;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
-using Test.It.With.Amqp.Protocol._091;
-using Test.It.With.RabbitMQ.Integration.Tests.Assertion;
-using Test.It.With.RabbitMQ.Integration.Tests.FrameworkExtensions;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication;
-using Test.It.With.RabbitMQ.Integration.Tests.TestApplication.Specifications;
-using Test.It.With.RabbitMQ.Integration.Tests.XUnit;
-using Test.It.With.RabbitMQ._091;
-using Test.It.With.RabbitMQ._091.Methods;
+using Test.It.With.Amqp091.Protocol.Generator;
+using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
+using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
+using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
+using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
+using Test.It.With.RabbitMQ091.Integration.Tests.XUnit;
+using Test.It.With.RabbitMQ091.Methods;
 using Xunit;
 using Xunit.Abstractions;
-using Basic = Test.It.With.RabbitMQ._091.Methods.Basic;
+using Basic = Test.It.With.RabbitMQ091.Methods.Basic;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests
+namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_sending_messages_over_rabbitmq
     {
-        public class When_publishing_a_message_and_waiting_for_confirm : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<
-            TestApplicationBuilder<ConfirmSelectApplication>>>
+        public class When_publishing_a_message_and_waiting_for_confirm : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<TestApplicationBuilder<ConfirmSelectApplication>>>
         {
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangeDeclare =
                 new ConcurrentBag<MethodFrame<Exchange.Declare>>();
 
-            private readonly ConcurrentBag<MethodFrame<Amqp.Protocol._091.Basic.Publish>> _basicPublish =
-                new ConcurrentBag<MethodFrame<Amqp.Protocol._091.Basic.Publish>>();
+            private readonly ConcurrentBag<MethodFrame<Amqp091.Protocol.Generator.Basic.Publish>> _basicPublish =
+                new ConcurrentBag<MethodFrame<Amqp091.Protocol.Generator.Basic.Publish>>();
 
             private bool _selectOkSent;
 
@@ -70,7 +68,7 @@ namespace Test.It.With.RabbitMQ.Integration.Tests
                     channelClosed = true;
                     TryStop();
                 });
-                testServer.On<Amqp.Protocol._091.Basic.Publish>((connectionId, frame) =>
+                testServer.On<Amqp091.Protocol.Generator.Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublish.Add(frame);
                     testServer.Send(connectionId,

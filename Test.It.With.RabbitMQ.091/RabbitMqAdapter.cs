@@ -1,7 +1,7 @@
 ﻿using RabbitMQ.Client;
 using Test.It.With.Amqp.NetworkClient;
 
-namespace Test.It.With.RabbitMQ._091
+namespace Test.It.With.RabbitMQ091
 {
     public static class NetworkClientFactoryExtensions
     {

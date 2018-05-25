@@ -32,6 +32,9 @@
       <Reference Include="Test.It.With.Amqp">
         <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp\bin\Debug\net47\Test.It.With.Amqp.dll</HintPath>
       </Reference>
+      <Reference Include="Test.It.With.Amqp.091.Protocol">
+        <HintPath>..\..\..\Test.It.With.AMQP.091\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.dll</HintPath>
+      </Reference>
       <Reference Include="Test.It.With.Amqp.Protocol">
         <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp.Protocol\bin\Debug\net47\Test.It.With.Amqp.Protocol.dll</HintPath>
       </Reference>

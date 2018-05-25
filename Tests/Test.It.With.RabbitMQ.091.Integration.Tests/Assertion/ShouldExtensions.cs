@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Should.Fluent.Model;
 
-namespace Test.It.With.RabbitMQ.Integration.Tests.Assertion
+namespace Test.It.With.RabbitMQ091.Integration.Tests.Assertion
 {
     public static class ShouldExtensions
     {       

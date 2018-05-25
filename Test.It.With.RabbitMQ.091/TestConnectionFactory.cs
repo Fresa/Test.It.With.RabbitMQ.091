@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.Impl;
 using Test.It.With.Amqp.NetworkClient;
 
-namespace Test.It.With.RabbitMQ._091
+namespace Test.It.With.RabbitMQ091
 {
     internal class TestConnectionFactory : IConnectionFactory
     {
