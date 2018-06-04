@@ -35,10 +35,10 @@
         <HintPath>..\..\..\Testing.RabbitMQ\Test.It.With.Amqp\bin\Debug\net47\Test.It.With.Amqp.dll</HintPath>
       </Reference>
       <Reference Include="Test.It.With.Amqp.091.Protocol">
-        <HintPath>..\..\..\Test.It.With.AMQP.091\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.dll</HintPath>
+        <HintPath>..\..\..\Test.It.With.AMQP.091.Protocol\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.dll</HintPath>
       </Reference>
       <Reference Include="Test.It.With.Amqp.091.Protocol.Generator">
-        <HintPath>..\..\..\Test.It.With.AMQP.091\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.Generator.dll</HintPath>
+        <HintPath>..\..\..\Test.It.With.AMQP.091.Protocol\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.Generator.dll</HintPath>
       </Reference>
       <Reference Include="Test.It.With.Amqp.Protocol">
         <HintPath>..\..\..\Test.It.With.AMQP.Protocol\Test.It.With.Amqp.Protocol\bin\Debug\net47\Test.It.With.Amqp.Protocol.dll</HintPath>

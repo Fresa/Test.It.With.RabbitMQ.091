@@ -6,10 +6,11 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
 using RabbitMQ.Util;
 using Test.It.With.Amqp.NetworkClient;
+using NetworkClientStream = Test.It.With.RabbitMQ091.NetworkClient.NetworkClientStream;
 
 namespace Test.It.With.RabbitMQ091
 {
-    public class TestFrameHandler : IFrameHandler
+    internal class TestFrameHandler : IFrameHandler
     {
         private readonly NetworkBinaryReader _reader;
         private readonly NetworkBinaryWriter _writer;

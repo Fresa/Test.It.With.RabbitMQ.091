@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using Should.Fluent;
-using Test.It.With.RabbitMQ091;
 using Test.It.With.XUnit;
 using Xunit;
 
-namespace Test.It.With.RabbitMQ.Tests
+namespace Test.It.With.RabbitMQ091.Tests
 {
     public class When_writing_rabbitmq_qpid_array_field_value_via_amqp : XUnit2Specification
     {
