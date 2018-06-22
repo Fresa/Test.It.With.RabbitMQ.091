@@ -7,7 +7,7 @@ using Should.Fluent;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
-using Test.It.With.Amqp091.Protocol.Generator;
+using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;

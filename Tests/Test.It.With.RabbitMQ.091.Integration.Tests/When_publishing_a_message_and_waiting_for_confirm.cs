@@ -5,7 +5,7 @@ using Should.Fluent;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
-using Test.It.With.Amqp091.Protocol.Generator;
+using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
@@ -25,8 +25,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangeDeclare =
                 new ConcurrentBag<MethodFrame<Exchange.Declare>>();
 
-            private readonly ConcurrentBag<MethodFrame<Amqp091.Protocol.Generator.Basic.Publish>> _basicPublish =
-                new ConcurrentBag<MethodFrame<Amqp091.Protocol.Generator.Basic.Publish>>();
+            private readonly ConcurrentBag<MethodFrame<Amqp091.Protocol.Basic.Publish>> _basicPublish =
+                new ConcurrentBag<MethodFrame<Amqp091.Protocol.Basic.Publish>>();
 
             private bool _selectOkSent;
 
@@ -68,7 +68,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     channelClosed = true;
                     TryStop();
                 });
-                testServer.On<Amqp091.Protocol.Generator.Basic.Publish>((connectionId, frame) =>
+                testServer.On<Amqp091.Protocol.Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublish.Add(frame);
                     testServer.Send(connectionId,

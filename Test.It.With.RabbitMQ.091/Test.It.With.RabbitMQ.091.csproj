@@ -1,10 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net47</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <Authors>Fredrik Arvidsson</Authors>
-        <Company />
-        <Copyright>Copyright ©  2017</Copyright>
+        <Company>FKAN Consulting AB</Company>
+        <Copyright>Copyright © 2017 Fredrik Arvidsson</Copyright>
         <RootNamespace>Test.It.With.RabbitMQ091</RootNamespace>
+        <Description>RabbitMQ 0.9.1 protocol integration for Test.It.With.Amqp testing framework</Description>
+        <RepositoryUrl>https://github.com/Fresa/Test.It.With.RabbitMQ.091</RepositoryUrl>
+        <PackageLicenseUrl>https://github.com/Fresa/Test.It.With.RabbitMQ.091/blob/master/LICENSE</PackageLicenseUrl>
+        <PackageTags>Test AMQP 091 RabbitMQ protocol</PackageTags>
+        <PackageReleaseNotes />
+        <PackageVersion></PackageVersion>
+        <Version>1.0.0</Version>
+        <IncludeSource>True</IncludeSource>
+        <IncludeSymbols>True</IncludeSymbols>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <LangVersion>7.1</LangVersion>
@@ -14,19 +23,8 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="RabbitMQ.Client" Version="5.0.1" />
-    </ItemGroup>
-    <ItemGroup>
-      <Reference Include="Test.It.With.Amqp">
-        <HintPath>..\..\Testing.RabbitMQ\Test.It.With.Amqp\bin\Debug\net47\Test.It.With.Amqp.dll</HintPath>
-      </Reference>
-      <Reference Include="Test.It.With.Amqp.091.Protocol">
-        <HintPath>..\..\Test.It.With.AMQP.091.Protocol\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.dll</HintPath>
-      </Reference>
-      <Reference Include="Test.It.With.Amqp.091.Protocol.Generator">
-        <HintPath>..\..\Test.It.With.AMQP.091.Protocol\Test.It.With.Amqp.091.Protocol\bin\Debug\net47\Test.It.With.Amqp.091.Protocol.Generator.dll</HintPath>
-      </Reference>
-      <Reference Include="Test.It.With.Amqp.Protocol">
-        <HintPath>..\..\Test.It.With.AMQP.Protocol\Test.It.With.Amqp.Protocol\bin\Debug\net47\Test.It.With.Amqp.Protocol.dll</HintPath>
-      </Reference>
+      <PackageReference Include="Test.It.With.Amqp" Version="1.0.0" />
+      <PackageReference Include="Test.It.With.Amqp.091.Protocol" Version="1.0.1" />
+      <PackageReference Include="Test.It.With.Amqp.Protocol" Version="1.0.3" />
     </ItemGroup>
 </Project>

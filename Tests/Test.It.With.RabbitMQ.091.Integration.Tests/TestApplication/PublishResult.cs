@@ -13,7 +13,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
             CorrelationId = correlationId;
         }
 
-        public string CorrelationId { get; private set; }
+        public string CorrelationId { get; }
 
         public bool WaitForConfirm(TimeSpan timeout, out bool timedOut)
         {

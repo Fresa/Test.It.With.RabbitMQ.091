@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -15,32 +14,12 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 
         public T Deserialize<T>(byte[] data)
         {
-            return Deserialize<T>(data, _defaultEncoding);
-        }
-
-        public T Deserialize<T>(byte[] data, Encoding encoding)
-        {
-            return JsonConvert.DeserializeObject<T>(encoding.GetString(data));
-        }
-
-        public object Deserialize(Type type, byte[] data, Encoding encoding)
-        {
-            return JsonConvert.DeserializeObject(encoding.GetString(data), type);
-        }
-
-        public object Deserialize(Type type, byte[] data)
-        {
-            return Deserialize(type, data, _defaultEncoding);
-        }
-
-        public byte[] Serialize<T>(T data, Encoding encoding)
-        {
-            return encoding.GetBytes(JsonConvert.SerializeObject(data));
+            return JsonConvert.DeserializeObject<T>(_defaultEncoding.GetString(data));
         }
 
         public byte[] Serialize<T>(T data)
         {
-            return Serialize(data, _defaultEncoding);
+            return _defaultEncoding.GetBytes(JsonConvert.SerializeObject(data));
         }
     }
 }

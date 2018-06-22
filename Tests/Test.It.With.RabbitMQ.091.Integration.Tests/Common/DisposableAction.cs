@@ -2,11 +2,11 @@
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.Common
 {
-    public class Disposable : IDisposable
+    public class DisposableAction : IDisposable
     {
         private readonly Action _action;
 
-        public Disposable(Action action)
+        public DisposableAction(Action action)
         {
             _action = action;
         }

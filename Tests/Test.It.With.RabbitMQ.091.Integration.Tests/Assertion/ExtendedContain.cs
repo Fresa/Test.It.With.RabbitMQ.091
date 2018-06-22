@@ -26,18 +26,18 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.Assertion
 
         public IEnumerable<T> Exactly(int number, Func<T, bool> predicate)
         {
-            return _should.Apply((t, a) =>
+            return _should.Apply((enumerable, assertProvider) =>
             {
-                var num = t.Where(predicate).Count();
+                var num = enumerable.Where(predicate).Count();
                 if (num == number)
                     return;
-                a.Fail($"Expecting {number} matching item in list.  Found {num}.");
-            }, (t, a) =>
+                assertProvider.Fail($"Expecting {number} matching item in list. Found {num}.");
+            }, (enumerable, assertProvider) =>
             {
-                var num = t.Where(predicate).Count();
+                var num = enumerable.Where(predicate).Count();
                 if (num != number)
                     return;
-                a.Fail($"Expecting other than {number} matching item in list.  Found {num}.");
+                assertProvider.Fail($"Expecting other than {number} matching item in list. Found {num}.");
             });
         }
     }

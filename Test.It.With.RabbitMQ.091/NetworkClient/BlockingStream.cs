@@ -8,7 +8,7 @@ namespace Test.It.With.RabbitMQ091.NetworkClient
 {
     internal class BlockingStream : Stream
     {
-        private BlockingCollection<byte> _buffer = new BlockingCollection<byte>(int.MaxValue);
+        private BlockingCollection<byte> _buffer = new BlockingCollection<byte>();
 
         public override bool CanRead { get; } = true;
         public override bool CanSeek { get; } = false;
@@ -19,14 +19,6 @@ namespace Test.It.With.RabbitMQ091.NetworkClient
         public override int ReadTimeout { get; set; } = Timeout.Infinite;
         public override int WriteTimeout { get; set; } = Timeout.Infinite;
 
-        /// <inheritdoc />
-        /// <summary>
-        /// Tries to read to the current stream within the specified timeout period.
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
-        /// <exception cref="T:System.TimeoutException"></exception>
         public override void Write(byte[] buffer, int offset, int count)
         {
             foreach (var bytes in buffer.Skip(offset).Take(count))
@@ -53,15 +45,6 @@ namespace Test.It.With.RabbitMQ091.NetworkClient
 
         }
 
-        /// <inheritdoc />
-        /// <summary>
-        /// Tries to read from the current stream within the specified timeout period.
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
-        /// <exception cref="T:System.TimeoutException"></exception>
-        /// <returns>Bytes read</returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
             for (var i = 0; i < count; i++)

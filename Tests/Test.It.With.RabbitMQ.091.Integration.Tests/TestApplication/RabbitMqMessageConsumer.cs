@@ -36,7 +36,10 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 
         public void Dispose()
         {
-            _consumer.Model.BasicCancel(_consumerTag);
+            if (_consumer.Model.IsOpen)
+            {
+                _consumer.Model.BasicCancel(_consumerTag);
+            }
             _consumer.Received -= OnReceived;
             _consumer.Model.Dispose();
         }
