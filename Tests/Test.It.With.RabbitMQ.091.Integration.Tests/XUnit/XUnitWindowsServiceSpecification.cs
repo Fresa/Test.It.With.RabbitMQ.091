@@ -25,6 +25,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
 
         public void Dispose()
         {
+            NLogCapturingTarget.Subscribe -= Output.WriteLine;
             _output.Dispose();
         }
     }
