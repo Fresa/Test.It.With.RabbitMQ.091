@@ -24,12 +24,12 @@
         <PackageReference Include="SimpleInjector" Version="3.3.2" />
         <PackageReference Include="Test.It" version="2.1.0" />
         <PackageReference Include="Test.It.While.Hosting.Your.Windows.Service" Version="3.0.0" />
+        <PackageReference Include="Test.It.With.Amqp" Version="2.0.0-pre-8f04c21" />
         <PackageReference Include="Test.It.With.XUnit" version="2.2.1" />
         <PackageReference Include="xunit" version="2.3.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Test.It.With.AMQP\Test.It.With.Amqp\Test.It.With.Amqp.csproj" />
       <ProjectReference Include="..\..\Test.It.With.RabbitMQ.091\Test.It.With.RabbitMQ.091.csproj" />
     </ItemGroup>
     <ItemGroup>

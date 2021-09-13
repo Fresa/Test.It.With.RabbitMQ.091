@@ -22,6 +22,7 @@
         <LangVersion>7.1</LangVersion>
     </PropertyGroup>
     <ItemGroup>
+      <PackageReference Include="Test.It.With.Amqp" Version="2.0.0-pre-8f04c21" />
       <PackageReference Include="Test.It.With.Amqp.091.Protocol" Version="1.0.1" />
       <PackageReference Include="Test.It.With.Amqp.Protocol" Version="1.0.3" />
     </ItemGroup>
