@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using FluentAssertions;
+using Log.It;
 using Newtonsoft.Json;
-using Should.Fluent;
+using RabbitMQ.Client;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
+using Test.It.With.Amqp.NetworkClient;
 using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
@@ -37,8 +43,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 
             protected override string[] StartParameters { get; } = { Parallelism.ToString() };
 
-            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(50);
-
+            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
+            
             protected override void Given(IServiceContainer container)
             {
                 var closedChannels = new ConcurrentBag<short>();
@@ -51,48 +57,48 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     }
                 }
 
-                var testServer = new AmqpTestFramework(Amqp091.Protocol.Amqp091.ProtocolResolver);
-                testServer
+                var testFramework = AmqpTestFramework.WithSocket(Amqp091.Protocol.Amqp091.ProtocolResolver);
+                testFramework
                     .WithDefaultProtocolHeaderNegotiation()
                     .WithDefaultSecurityNegotiation(heartbeatInterval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionOpenNegotiation()
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionCloseNegotiation();
 
-                testServer.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
-                testServer.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
-                testServer.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
+                testFramework.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
+                testFramework.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
+                testFramework.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
                 {
                     _exchangesDeclared.Add(frame);
                     return new Exchange.DeclareOk();
                 });
-                testServer.On<Queue.Declare, Queue.DeclareOk>((connectionId, frame) =>
+                testFramework.On<Queue.Declare, Queue.DeclareOk>((connectionId, frame) =>
                 {
                     _queuesDeclared.Add(frame);
                     return new Queue.DeclareOk();
                 });
-                testServer.On<Queue.Bind, Queue.BindOk>((connectionId, frame) =>
+                testFramework.On<Queue.Bind, Queue.BindOk>((connectionId, frame) =>
                 {
                     _queuesBound.Add(frame);
                     return new Queue.BindOk();
                 });
 
-                testServer.On<Channel.Close>((id, frame) =>
+                testFramework.On<Channel.Close>((id, frame) =>
                 {
                     closedChannels.Add(frame.Channel);
                     TryStop();
                 });
-                testServer.On<Basic.Publish>((connectionId, frame) =>
+                testFramework.On<Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublishes.Add(frame);
                 });
-                testServer.On<Basic.Consume>((connectionId, frame) =>
+                testFramework.On<Basic.Consume>((connectionId, frame) =>
                 {
                     var consumerTag = Guid.NewGuid().ToString();
                     _basicConsumes.Add(frame);
 
                     // We need to respond with ConsumeOk before we can start delivering messages to the client
-                    testServer.Send(connectionId, new MethodFrame<Basic.ConsumeOk>(frame.Channel,
+                    testFramework.Send(connectionId, new MethodFrame<Basic.ConsumeOk>(frame.Channel,
                         new Basic.ConsumeOk
                         {
                             ConsumerTag = ConsumerTag.From(consumerTag)
@@ -103,7 +109,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                         var testMessage = new TestMessage("This is sent from server.");
                         var payload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(testMessage));
 
-                        testServer.Send<Basic.Deliver, Basic.ContentHeader>(connectionId,
+                        testFramework.Send<Basic.Deliver, Basic.ContentHeader>(connectionId,
                             new MethodFrame<Basic.Deliver>(frame.Channel,
                                 new Basic.Deliver
                                 {
@@ -111,7 +117,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                                     ContentHeader = new Basic.ContentHeader
                                     {
                                         BodySize = payload.Length
-                                    }
+                                    },
+                                    DeliveryTag = DeliveryTag.From(1)
                                 }
                                 .AddContentBodyFragments(new ContentBody
                                 {
@@ -119,42 +126,44 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                                 })));
                     });
                 });
-                testServer.On<Basic.Cancel, Basic.CancelOk>((connectionId, frame) =>
+                testFramework.On<Basic.Cancel, Basic.CancelOk>((connectionId, frame) =>
                     new Basic.CancelOk { ConsumerTag = frame.Message.ConsumerTag });
-                testServer.On<Basic.Ack>((connectionId, frame) =>
+                testFramework.On<Basic.Ack>((connectionId, frame) =>
                 {
                     _acks.Add(frame);
                     TryStop();
                 });
 
-                ServiceController.OnStopped += code =>
+                DisposeAsyncOnTearDown(testFramework.Start());
+                DisposeAsyncOnTearDown(testFramework);
+                
+                container.RegisterSingleton<IConnectionFactory>(() => new ConnectionFactory
                 {
-                    testServer.Dispose();
-                };
-
-                container.RegisterSingleton(() => testServer.ConnectionFactory.ToRabbitMqConnectionFactory());
+                    HostName = "localhost",
+                    Port = testFramework.Port
+                });
             }
 
             [Fact]
             public void It_should_have_published_messages()
             {
-                _basicPublishes.Should().Count.Exactly(2);
+                _basicPublishes.Should().HaveCount(2);
             }
 
             [Fact]
             public void It_should_have_published_the_correct_message_type()
             {
-                _basicPublishes.Should().Contain().Two(frame =>
+                _basicPublishes.Should().Contain(frame =>
                     frame.Message.ContentHeader.Type.Equals(Shortstr.From(typeof(TestMessage).FullName)));
             }
 
             [Fact]
             public void It_should_have_published_the_correct_message()
             {
-                _basicPublishes.Should().Contain.One(frame =>
+                _basicPublishes.Should().ContainSingle(frame =>
                     frame.Message.ContentBody.Deserialize<TestMessage>().Message
                         .Equals("0: This is sent from server."));
-                _basicPublishes.Should().Contain.One(frame =>
+                _basicPublishes.Should().ContainSingle(frame =>
                     frame.Message.ContentBody.Deserialize<TestMessage>().Message
                         .Equals("1: This is sent from server."));
             }
@@ -162,59 +171,51 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             [Fact]
             public void It_should_have_published_the_message_on_the_correct_exchange()
             {
-                _basicPublishes.Should().Contain()
-                    .One(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
-                _basicPublishes.Should().Contain()
-                    .One(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")));
+                _basicPublishes.Should().ContainSingle(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
+                _basicPublishes.Should().ContainSingle(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")));
             }
 
             [Fact]
             public void It_should_have_declared_exchanges()
             {
-                _exchangesDeclared.Should().Count.Exactly(4);
+                _exchangesDeclared.Should().HaveCount(4);
             }
 
             [Fact]
             public void It_should_have_declared_an_exchange_with_name()
             {
-                _exchangesDeclared.Should().Contain()
-                    .Two(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
-                _exchangesDeclared.Should().Contain()
-                    .Two(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")));
+                _exchangesDeclared.Should().Contain(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
+                _exchangesDeclared.Should().Contain(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")));
             }
 
             [Fact]
             public void It_should_have_declared_queues()
             {
-                _queuesDeclared.Should().Count.Exactly(2);
+                _queuesDeclared.Should().HaveCount(2);
             }
 
             [Fact]
             public void It_should_have_declared_queues_with_name()
             {
-                _queuesDeclared.Should().Contain()
-                    .One(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
-                _queuesDeclared.Should().Contain()
-                    .One(frame => frame.Message.Queue.Equals(QueueName.From("queue1")));
+                _queuesDeclared.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
+                _queuesDeclared.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue1")));
             }
 
             [Fact]
             public void It_should_have_bound_the_queues()
             {
-                _queuesBound.Should().Count.Exactly(2);
+                _queuesBound.Should().HaveCount(2);
             }
 
             [Fact]
             public void It_should_have_bound_queues_to_exchanges()
             {
-                _queuesBound.Should().Contain()
-                    .One(frame => 
+                _queuesBound.Should().ContainSingle(frame => 
                         frame.Message.Queue.Equals(QueueName.From("queue0")) &&
                         frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")) &&
                         frame.Message.RoutingKey.Equals(Shortstr.From("routing0")));
 
-                _queuesBound.Should().Contain()
-                    .One(frame => 
+                _queuesBound.Should().ContainSingle(frame => 
                         frame.Message.Queue.Equals(QueueName.From("queue1")) &&
                         frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")) &&
                         frame.Message.RoutingKey.Equals(Shortstr.From("routing1")));
@@ -223,27 +224,29 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             [Fact]
             public void It_should_have_declared_an_exchange_with_type()
             {
-                _exchangesDeclared.Should().Contain.Any(frame => frame.Message.Type.Equals(Shortstr.From("topic")));
+                _exchangesDeclared.Should().Contain(frame => frame.Message.Type.Equals(Shortstr.From("topic")));
             }
 
             [Fact]
             public void It_should_have_starting_consuming_messages()
             {
-                _basicConsumes.Should().Count.Exactly(2);
+                _basicConsumes.Should().HaveCount(2);
             }
 
             [Fact]
             public void It_should_have_starting_consuming_messages_from_queues()
             {
-                _basicConsumes.Should().Contain.One(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
-                _basicConsumes.Should().Contain.One(frame => frame.Message.Queue.Equals(QueueName.From("queue1")));
+                _basicConsumes.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
+                _basicConsumes.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue1")));
             }
 
             [Fact]
             public void It_should_have_acked_consumed_messages()
             {
-                _acks.Should().Count.Exactly(2);
+                _acks.Should().HaveCount(2);
             }
         }
     }
+
+
 }

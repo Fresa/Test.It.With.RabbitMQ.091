@@ -25,7 +25,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
         {
             try
             {
-                _subscription.Invoke(_serializer.Deserialize<TMessage>(args.Body));
+                _subscription.Invoke(_serializer.Deserialize<TMessage>(args.Body.ToArray()));
                 _consumer.Model.BasicAck(args.DeliveryTag, false);
             }
             catch

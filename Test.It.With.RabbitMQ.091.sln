@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2037
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.RabbitMQ.091", "Test.It.With.RabbitMQ.091\Test.It.With.RabbitMQ.091.csproj", "{13323EEF-85D0-4F98-8C81-2571D3CF55AB}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.RabbitMQ.091.Integration.Tests", "Tests\Test.It.With.RabbitMQ.091.Integration.Tests\Test.It.With.RabbitMQ.091.Integration.Tests.csproj", "{0FF4A047-3977-437D-9068-D375B118325F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.RabbitMQ.091.Tests", "Tests\Test.It.With.RabbitMQ.091.Tests\Test.It.With.RabbitMQ.091.Tests.csproj", "{7BD84E81-96AF-4DB9-9A97-C33BBBF59562}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.Amqp", "..\Test.It.With.AMQP\Test.It.With.Amqp\Test.It.With.Amqp.csproj", "{379E3339-99D6-4378-8D02-3EAF7C1B18CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,14 @@ Global
 		{7BD84E81-96AF-4DB9-9A97-C33BBBF59562}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BD84E81-96AF-4DB9-9A97-C33BBBF59562}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BD84E81-96AF-4DB9-9A97-C33BBBF59562}.Release|Any CPU.Build.0 = Release|Any CPU
+		{379E3339-99D6-4378-8D02-3EAF7C1B18CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{379E3339-99D6-4378-8D02-3EAF7C1B18CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{379E3339-99D6-4378-8D02-3EAF7C1B18CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{379E3339-99D6-4378-8D02-3EAF7C1B18CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97750716-D628-4B44-9CB6-D254CDB7AD66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97750716-D628-4B44-9CB6-D254CDB7AD66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97750716-D628-4B44-9CB6-D254CDB7AD66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97750716-D628-4B44-9CB6-D254CDB7AD66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

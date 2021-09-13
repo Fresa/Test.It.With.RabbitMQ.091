@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using Should.Fluent;
+using FluentAssertions;
+using RabbitMQ.Client;
 using Test.It.While.Hosting.Your.Windows.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
@@ -48,7 +49,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     }
                 }
 
-                var testServer = new AmqpTestFramework(RabbitMq091.ProtocolResolver);
+                var testServer = AmqpTestFramework.WithSocket(RabbitMq091.ProtocolResolver);
                 testServer
                     .WithDefaultProtocolHeaderNegotiation()
                     .WithDefaultSecurityNegotiation(heartbeatInterval: TimeSpan.FromSeconds(5))
@@ -86,26 +87,32 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     return new Confirm.SelectOk();
                 });
 
-                container.RegisterSingleton(() => testServer.ConnectionFactory.ToRabbitMqConnectionFactory());
+                DisposeAsyncOnTearDown(testServer.Start());
+                DisposeAsyncOnTearDown(testServer);
+                
+                container.RegisterSingleton<IConnectionFactory>(() => new ConnectionFactory
+                {
+                    Endpoint = new AmqpTcpEndpoint(testServer.Address.ToString(), testServer.Port)
+                });
             }
 
             [Fact]
             public void It_should_have_published_messages()
             {
-                _basicPublish.Should().Count.Exactly(2);
+                _basicPublish.Should().HaveCount(2);
             }
 
             [Fact]
             public void It_should_have_published_the_correct_message_type()
             {
-                _basicPublish.Should().Contain().Two(frame =>
+                _basicPublish.Should().Contain(frame =>
                     frame.Message.ContentHeader.Type.Equals(Shortstr.From(typeof(TestMessage).FullName)));
             }
 
             [Fact]
             public void It_should_have_published_the_correct_message()
             {
-                _basicPublish.Should().Contain.Any(frame =>
+                _basicPublish.Should().Contain(frame =>
                     frame.Message.ContentBody.Deserialize<TestMessage>().Message
                         .Equals("Testing sending a message using RabbitMQ"));
             }
@@ -113,7 +120,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             [Fact]
             public void It_should_have_published_a_confirming_message()
             {
-                _basicPublish.Should().Contain.Any(frame =>
+                _basicPublish.Should().Contain(frame =>
                     frame.Message.ContentBody.Deserialize<TestMessage>().Message
                         .Equals("Test message has been confirmed"));
             }
@@ -121,33 +128,31 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             [Fact]
             public void It_should_have_published_the_message_on_the_correct_exchange()
             {
-                _basicPublish.Should().Contain()
-                    .Two(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
+                _basicPublish.Should().Contain(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
             }
 
             [Fact]
             public void It_should_have_declared_exchanges()
             {
-                _exchangeDeclare.Should().Count.Exactly(1);
+                _exchangeDeclare.Should().HaveCount(1);
             }
 
             [Fact]
             public void It_should_have_declared_an_exchange_with_name()
             {
-                _exchangeDeclare.Should().Contain()
-                    .One(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
+                _exchangeDeclare.Should().ContainSingle(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
             }
 
             [Fact]
             public void It_should_have_declared_an_exchange_with_type()
             {
-                _exchangeDeclare.Should().Contain.Any(frame => frame.Message.Type.Equals(Shortstr.From("topic")));
+                _exchangeDeclare.Should().Contain(frame => frame.Message.Type.Equals(Shortstr.From("topic")));
             }
 
             [Fact]
             public void It_should_have_sent_confirm_select_ok()
             {
-                _selectOkSent.Should().Be.True();
+                _selectOkSent.Should().BeTrue();
             }
         }
     }

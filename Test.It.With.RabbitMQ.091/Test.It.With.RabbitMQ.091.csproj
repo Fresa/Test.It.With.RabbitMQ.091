@@ -22,8 +22,7 @@
         <LangVersion>7.1</LangVersion>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="RabbitMQ.Client" Version="5.0.1" />
-      <PackageReference Include="Test.It.With.Amqp" Version="1.0.0" />
+      <PackageReference Include="RabbitMQ.Client" Version="6.0.0" />
       <PackageReference Include="Test.It.With.Amqp.091.Protocol" Version="1.0.1" />
       <PackageReference Include="Test.It.With.Amqp.Protocol" Version="1.0.3" />
     </ItemGroup>

@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Should.Fluent;
+using FluentAssertions;
 using Test.It.With.RabbitMQ091.NetworkClient;
 using Test.It.With.XUnit;
 using Xunit;
@@ -74,13 +74,13 @@ namespace Test.It.With.RabbitMQ091.Tests.NetworkClient
         [Fact]
         public void It_should_send_data()
         {
-            _dataSent.Count.Should().Equal(1000);
+            _dataSent.Count.Should().Be(1000);
         }
 
         [Fact]
         public void It_should_receive_data()
         {
-            _readData.Count.Should().Equal(1000);
+            _readData.Count.Should().Be(1000);
         }
 
         [Fact]
@@ -91,8 +91,8 @@ namespace Test.It.With.RabbitMQ091.Tests.NetworkClient
                 var dataSent = _dataSent[i];
                 var dataRead = _readData[i];
 
-                dataSent.Length.Should().Be.GreaterThan(0);
-                dataRead.Should().Equal(dataSent);
+                dataSent.Length.Should().BeGreaterThan(0);
+                dataRead.Should().Be(dataSent);
             }
         }
     }

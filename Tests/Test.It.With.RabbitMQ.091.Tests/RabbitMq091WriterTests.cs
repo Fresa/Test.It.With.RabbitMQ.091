@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using Should.Fluent;
+using FluentAssertions;
 using Test.It.With.XUnit;
 using Xunit;
 
@@ -24,7 +24,7 @@ namespace Test.It.With.RabbitMQ091.Tests
         [Fact]
         public void It_should_parse_correctly()
         {
-            _buffer.Should().Equal(new byte[] { (byte)'x', 0, 0, 0, 5, 0, 6, 1, 2, 3 });
+            _buffer.Should<byte>().BeEquivalentTo(new byte[] { (byte)'x', 0, 0, 0, 5, 0, 6, 1, 2, 3 });
         }
     }
 }

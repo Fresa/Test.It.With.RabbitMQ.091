@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using Log.It;
-using Microsoft.Diagnostics.Tracing;
 using RabbitMQ.Client.Logging;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
