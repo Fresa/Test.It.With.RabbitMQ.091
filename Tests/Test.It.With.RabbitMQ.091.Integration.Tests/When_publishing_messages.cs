@@ -79,7 +79,6 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 
                 container.RegisterSingleton(testServer.ToRabbitMqConnectionFactory);
 
-
                 void TryStop()
                 {
                     if (closedChannels.Count == NumberOfPublishes && _basicPublish.Count == NumberOfPublishes)

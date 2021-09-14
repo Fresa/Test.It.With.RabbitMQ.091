@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using RabbitMQ.Client;
@@ -41,12 +42,21 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(1))
                     .WithDefaultConnectionCloseNegotiation();
 
+                var connections = new List<ConnectionId>();
+                testFramework.On<Connection.Open>((id, frame) =>
+                {
+                    connections.Add(id);
+                });
                 testFramework.On<Heartbeat>((connectionId, frame) =>
                 {
                     _heartbeats.Add(frame);
                     DisposeOnTearDown(stopLock.TryAcquire(out var shouldStop));
                     if (shouldStop)
                     {
+                        foreach (var connection in connections)
+                        {
+                            testFramework.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
+                        }
                         ServiceController.StopAsync().GetAwaiter().GetResult();
                     }
                 });
@@ -54,11 +64,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 DisposeAsyncOnTearDown(testFramework.Start());
                 DisposeAsyncOnTearDown(testFramework);
 
-                container.RegisterSingleton<IConnectionFactory>(() => new ConnectionFactory
-                {
-                    HostName = testFramework.Address.ToString(),
-                    Port = testFramework.Port
-                });
+                container.RegisterSingleton(testFramework.ToRabbitMqConnectionFactory);
+
             }
 
             [Fact]
