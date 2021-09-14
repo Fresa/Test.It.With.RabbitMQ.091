@@ -8,16 +8,15 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
     {
         internal static IConnectionFactory ToRabbitMqConnectionFactory(this SocketAmqpTestFramework testFramework)
         {
-            var timeout = TimeSpan.FromSeconds(2);
             return new ConnectionFactory
             {
                 HostName = testFramework.Address.ToString(),
                 Port = testFramework.Port,
-                RequestedConnectionTimeout = timeout,
-                ContinuationTimeout = timeout,
-                HandshakeContinuationTimeout = timeout,
-                SocketWriteTimeout = timeout,
-                SocketReadTimeout = timeout
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(5),
+                ContinuationTimeout = TimeSpan.FromSeconds(1),
+                HandshakeContinuationTimeout = TimeSpan.FromSeconds(1),
+                SocketWriteTimeout = TimeSpan.FromSeconds(1),
+                SocketReadTimeout = TimeSpan.FromSeconds(1)
             };
         }
     }
