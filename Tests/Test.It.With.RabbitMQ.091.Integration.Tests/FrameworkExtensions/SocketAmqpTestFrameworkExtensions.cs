@@ -14,9 +14,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
                 Port = testFramework.Port,
                 RequestedConnectionTimeout = TimeSpan.FromSeconds(5),
                 ContinuationTimeout = TimeSpan.FromSeconds(1),
-                HandshakeContinuationTimeout = TimeSpan.FromSeconds(1),
-                SocketWriteTimeout = TimeSpan.FromSeconds(1),
-                SocketReadTimeout = TimeSpan.FromSeconds(1)
+                HandshakeContinuationTimeout = TimeSpan.FromSeconds(1)
             };
         }
     }
