@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Log.It;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using Test.It.While.Hosting.Your.Service;
@@ -12,6 +13,7 @@ using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
@@ -59,6 +61,10 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 {
                     connections.Add(id);
                 });
+                testFramework.On<Connection.Close>((id, frame) =>
+                {
+                    connections.Remove(id);
+                });
                 testFramework.On<Channel.Open, Channel.OpenOk>((connectionId, frame) =>
                 {
                     channels.TryAdd((connectionId, frame.Channel), frame.Message);
@@ -69,6 +75,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     channels.TryRemove((connectionId, frame.Channel), out _);
                     return new Channel.CloseOk();
                 });
+                testFramework.On<Channel.CloseOk>((id, frame) => {});
                 testFramework.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
                 {
                     _exchangesDeclared.Add(frame);
@@ -131,7 +138,18 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     TryStop();
                 });
 
-                DisposeAsyncOnTearDown(testFramework.Start());
+                var server = testFramework.Start();
+                DisposeAsyncOnTearDown(new AsyncDisposableAction(async () =>
+                {
+                    try
+                    {
+                        await server.DisposeAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFactory.Create<SocketAmqpTestFramework>().Error(e, "Error when stopping socket server");
+                    }
+                })); 
                 DisposeAsyncOnTearDown(testFramework);
                 
                 container.RegisterSingleton(testFramework.ToRabbitMqConnectionFactory);
@@ -151,7 +169,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                         {
                             testFramework.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
                         }
-                        ServiceController.StopAsync().GetAwaiter().GetResult();
+                        ServiceController.StopAsync();
                     }
                 }
             }

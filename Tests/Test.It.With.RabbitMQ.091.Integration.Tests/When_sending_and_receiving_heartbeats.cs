@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using FluentAssertions;
-using RabbitMQ.Client;
+using Log.It;
 using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
@@ -28,7 +27,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             }
 
             protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
-            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(16);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
             protected override void Given(IServiceContainer container)
             {
@@ -47,6 +46,10 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 {
                     connections.Add(id);
                 });
+                testFramework.On<Connection.Close>((id, frame) =>
+                {
+                    connections.Remove(id);
+                });
                 testFramework.On<Heartbeat>((connectionId, frame) =>
                 {
                     _heartbeats.Add(frame);
@@ -57,15 +60,25 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                         {
                             testFramework.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
                         }
-                        ServiceController.StopAsync().GetAwaiter().GetResult();
+                        ServiceController.StopAsync();
                     }
                 });
 
-                DisposeAsyncOnTearDown(testFramework.Start());
+                var server = testFramework.Start();
+                DisposeAsyncOnTearDown(new AsyncDisposableAction(async () =>
+                {
+                    try
+                    {
+                        await server.DisposeAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFactory.Create<SocketAmqpTestFramework>().Error(e, "Error when stopping socket server");
+                    }
+                }));
                 DisposeAsyncOnTearDown(testFramework);
 
                 container.RegisterSingleton(testFramework.ToRabbitMqConnectionFactory);
-
             }
 
             [Fact]

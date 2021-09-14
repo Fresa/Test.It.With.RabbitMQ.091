@@ -2,12 +2,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using FluentAssertions;
+using Log.It;
 using RabbitMQ.Client;
 using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
@@ -37,7 +39,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             protected override string[] StartParameters { get; } = { NumberOfPublishes.ToString() };
 
             protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
-            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
             protected override void Given(IServiceContainer container)
             {
@@ -56,6 +58,11 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 {
                     connections.Add(id);
                 });
+                testServer.On<Connection.Close>((id, frame) =>
+                {
+                    connections.Remove(id);
+                });
+
                 testServer.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
                 testServer.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
                 testServer.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
@@ -72,19 +79,33 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 testServer.On<Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublish.Add(frame);
+                    TryStop();
                 });
 
-                DisposeAsyncOnTearDown(testServer.Start());
+                var server = testServer.Start();
+                DisposeAsyncOnTearDown(new AsyncDisposableAction(async () =>
+                {
+                    try
+                    {
+                        await server.DisposeAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFactory.Create<SocketAmqpTestFramework>().Error(e, "Error when stopping socket server");
+                    }
+                })); 
                 DisposeAsyncOnTearDown(testServer);
 
                 container.RegisterSingleton(testServer.ToRabbitMqConnectionFactory);
 
                 void TryStop()
                 {
-                    if (closedChannels.Count == NumberOfPublishes && _basicPublish.Count == NumberOfPublishes)
+                    if (_basicPublish.Count == NumberOfPublishes)
                     {
+                        var logger = LogFactory.Create<SocketAmqpTestFramework>();
                         foreach (var connection in connections)
                         {
+                            logger.Info($"Closing connection {connection}");
                             testServer.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
                         }
                         ServiceController.StopAsync();

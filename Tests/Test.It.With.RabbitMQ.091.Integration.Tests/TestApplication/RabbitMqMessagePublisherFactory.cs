@@ -42,14 +42,11 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 
         public void Dispose()
         {
-            Parallel.ForEach(new List<IConnection>
-            {
-                _connections.Values.First()
-            }, connection =>
+            Parallel.ForEach(_connections.Values, connection =>
             {
                 try
                 {
-                    connection.Close();
+                    connection.Close(TimeSpan.FromSeconds(1));
                 }
                 catch
                 {

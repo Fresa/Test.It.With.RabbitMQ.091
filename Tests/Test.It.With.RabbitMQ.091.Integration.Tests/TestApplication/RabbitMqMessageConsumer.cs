@@ -38,10 +38,23 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
         {
             if (_consumer.Model.IsOpen)
             {
-                _consumer.Model.BasicCancelNoWait(_consumerTag);
+                try
+                {
+                    _consumer.Model.BasicCancelNoWait(_consumerTag);
+                }
+                catch 
+                {
+                }
             }
             _consumer.Received -= OnReceived;
-            _consumer.Model.Close();
+
+            try
+            {
+                _consumer.Model.Close();
+            }
+            catch 
+            {
+            }
             _consumer.Model.Dispose();
         }
     }

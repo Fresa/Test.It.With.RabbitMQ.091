@@ -34,7 +34,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
             {
                 try
                 {
-                    connection.Close();
+                    connection.Close(TimeSpan.FromSeconds(1));
                 }
                 catch 
                 {

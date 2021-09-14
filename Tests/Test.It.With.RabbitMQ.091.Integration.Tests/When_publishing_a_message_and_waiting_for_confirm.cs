@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using Log.It;
 using RabbitMQ.Client;
 using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
@@ -56,6 +57,11 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 {
                     connections.Add(id);
                 });
+                testServer.On<Connection.Close>((id, frame) =>
+                {
+                    connections.Remove(id);
+                });
+
                 testServer.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
                 testServer.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
                 testServer.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
@@ -86,7 +92,18 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     return new Confirm.SelectOk();
                 });
 
-                DisposeAsyncOnTearDown(testServer.Start());
+                var server = testServer.Start();
+                DisposeAsyncOnTearDown(new AsyncDisposableAction(async () =>
+                {
+                    try
+                    {
+                        await server.DisposeAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFactory.Create<SocketAmqpTestFramework>().Error(e, "Error when stopping socket server");
+                    }
+                }));
                 DisposeAsyncOnTearDown(testServer);
 
                 container.RegisterSingleton(testServer.ToRabbitMqConnectionFactory);
