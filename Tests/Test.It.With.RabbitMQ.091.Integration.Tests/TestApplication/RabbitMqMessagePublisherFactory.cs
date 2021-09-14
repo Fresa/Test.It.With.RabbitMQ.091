@@ -1,4 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
@@ -38,10 +42,20 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 
         public void Dispose()
         {
-            foreach (var connection in _connections.Values)
+            Parallel.ForEach(new List<IConnection>
             {
+                _connections.Values.First()
+            }, connection =>
+            {
+                try
+                {
+                    connection.Close();
+                }
+                catch
+                {
+                }
                 connection.Dispose();
-            }
+            });
         }
     }
 }

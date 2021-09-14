@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using RabbitMQ.Client;
-using Test.It.While.Hosting.Your.Windows.Service;
+using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
@@ -21,7 +23,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_sending_messages_over_rabbitmq
     {
-        public class When_publishing_a_message_and_waiting_for_confirm : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<TestApplicationBuilder<ConfirmSelectApplication>>>
+        public class When_publishing_a_message_and_waiting_for_confirm : XUnitServiceSpecification<DefaultServiceHostStarter<TestApplicationBuilder<ConfirmSelectApplication>>>
         {
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangeDeclare =
                 new ConcurrentBag<MethodFrame<Exchange.Declare>>();
@@ -41,14 +43,6 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             {
                 var channelClosed = false;
 
-                void TryStop()
-                {
-                    if (channelClosed && _basicPublish.Count == 2)
-                    {
-                        ServiceController.Stop();
-                    }
-                }
-
                 var testServer = AmqpTestFramework.WithSocket(RabbitMq091.ProtocolResolver);
                 testServer
                     .WithDefaultProtocolHeaderNegotiation()
@@ -57,6 +51,11 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionCloseNegotiation();
 
+                var connections = new List<ConnectionId>();
+                testServer.On<Connection.Open>((id, frame) =>
+                {
+                    connections.Add(id);
+                });
                 testServer.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
                 testServer.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
                 testServer.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
@@ -89,11 +88,20 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 
                 DisposeAsyncOnTearDown(testServer.Start());
                 DisposeAsyncOnTearDown(testServer);
-                
-                container.RegisterSingleton<IConnectionFactory>(() => new ConnectionFactory
+
+                container.RegisterSingleton(testServer.ToRabbitMqConnectionFactory);
+
+                void TryStop()
                 {
-                    Endpoint = new AmqpTcpEndpoint(testServer.Address.ToString(), testServer.Port)
-                });
+                    if (channelClosed && _basicPublish.Count == 2)
+                    {
+                        foreach (var connection in connections)
+                        {
+                            testServer.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
+                        }
+                        ServiceController.StopAsync();
+                    }
+                }
             }
 
             [Fact]

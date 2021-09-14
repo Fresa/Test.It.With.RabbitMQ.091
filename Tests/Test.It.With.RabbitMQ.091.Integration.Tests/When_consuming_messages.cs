@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Log.It;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-using Test.It.While.Hosting.Your.Windows.Service;
+using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
-using Test.It.With.Amqp.NetworkClient;
 using Test.It.With.Amqp091.Protocol;
 using Test.It.With.RabbitMQ091.Integration.Tests.Assertion;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
@@ -26,7 +23,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_receiving_messages_over_rabbitmq
     {
-        public class When_consuming_messages : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<TestApplicationBuilder<MessageConsumingApplication>>>
+        public class When_consuming_messages : XUnitServiceSpecification<DefaultServiceHostStarter<TestApplicationBuilder<MessageConsumingApplication>>>
         {
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangesDeclared = new ConcurrentBag<MethodFrame<Exchange.Declare>>();
             private readonly ConcurrentBag<MethodFrame<Queue.Declare>> _queuesDeclared = new ConcurrentBag<MethodFrame<Queue.Declare>>();
@@ -47,15 +44,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             
             protected override void Given(IServiceContainer container)
             {
-                var closedChannels = new ConcurrentBag<short>();
-
-                void TryStop()
-                {
-                    if (closedChannels.Count == Parallelism && _basicPublishes.Count == Parallelism && _acks.Count == Parallelism)
-                    {
-                        ServiceController.Stop();
-                    }
-                }
+                var channels = new ConcurrentDictionary<(ConnectionId, short), Channel.Open>();
 
                 var testFramework = AmqpTestFramework.WithSocket(Amqp091.Protocol.Amqp091.ProtocolResolver);
                 testFramework
@@ -65,8 +54,21 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionCloseNegotiation();
 
-                testFramework.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
-                testFramework.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
+                var connections = new List<ConnectionId>();
+                testFramework.On<Connection.Open>((id, frame) =>
+                {
+                    connections.Add(id);
+                });
+                testFramework.On<Channel.Open, Channel.OpenOk>((connectionId, frame) =>
+                {
+                    channels.TryAdd((connectionId, frame.Channel), frame.Message);
+                    return new Channel.OpenOk();
+                });
+                testFramework.On<Channel.Close, Channel.CloseOk>((connectionId, frame) =>
+                {
+                    channels.TryRemove((connectionId, frame.Channel), out _);
+                    return new Channel.CloseOk();
+                });
                 testFramework.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
                 {
                     _exchangesDeclared.Add(frame);
@@ -83,11 +85,6 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     return new Queue.BindOk();
                 });
 
-                testFramework.On<Channel.Close>((id, frame) =>
-                {
-                    closedChannels.Add(frame.Channel);
-                    TryStop();
-                });
                 testFramework.On<Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublishes.Add(frame);
@@ -137,11 +134,26 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 DisposeAsyncOnTearDown(testFramework.Start());
                 DisposeAsyncOnTearDown(testFramework);
                 
-                container.RegisterSingleton<IConnectionFactory>(() => new ConnectionFactory
+                container.RegisterSingleton(testFramework.ToRabbitMqConnectionFactory);
+
+                void TryStop()
                 {
-                    HostName = "localhost",
-                    Port = testFramework.Port
-                });
+                    if (_basicPublishes.Count == Parallelism && _acks.Count == Parallelism)
+                    {
+                        foreach (var ((connectionId, channel), _) in channels)
+                        {
+                            testFramework.Send(connectionId,
+                                new MethodFrame<Channel.Close>(channel,
+                                    new Channel.Close()
+                                        {ReplyCode = ReplyCode.From(200), ReplyText = ReplyText.From("bye")}));
+                        }
+                        foreach (var connection in connections)
+                        {
+                            testFramework.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
+                        }
+                        ServiceController.StopAsync().GetAwaiter().GetResult();
+                    }
+                }
             }
 
             [Fact]
@@ -247,6 +259,4 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             }
         }
     }
-
-
 }

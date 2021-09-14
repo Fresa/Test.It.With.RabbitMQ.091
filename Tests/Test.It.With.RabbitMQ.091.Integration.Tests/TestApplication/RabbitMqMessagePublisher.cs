@@ -30,6 +30,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 
         public void Dispose()
         {
+            _model.Close();
             _model.Dispose();
         }
     }

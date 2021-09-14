@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using FluentAssertions;
 using RabbitMQ.Client;
-using Test.It.While.Hosting.Your.Windows.Service;
+using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp091.Protocol;
@@ -19,7 +20,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_sending_messages_over_rabbitmq
     {
-        public class When_publishing_a_message : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<TestApplicationBuilder<MessageSendingApplication>>>
+        public class When_publishing_a_message : XUnitServiceSpecification<DefaultServiceHostStarter<TestApplicationBuilder<MessageSendingApplication>>>
         {
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangeDeclare =
                 new ConcurrentBag<MethodFrame<Exchange.Declare>>();
@@ -33,21 +34,14 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 
             private const int NumberOfPublishes = 4;
 
-            protected override string[] StartParameters { get; } = {NumberOfPublishes.ToString()};
+            protected override string[] StartParameters { get; } = { NumberOfPublishes.ToString() };
 
             protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
             protected override void Given(IServiceContainer container)
             {
                 var closedChannels = new ConcurrentBag<short>();
-
-                void TryStop()
-                {
-                    if (closedChannels.Count == NumberOfPublishes && _basicPublish.Count == NumberOfPublishes)
-                    {
-                        ServiceController.Stop();
-                    }
-                }
 
                 var testServer = AmqpTestFramework.WithSocket(Amqp091.Protocol.Amqp091.ProtocolResolver);
                 testServer
@@ -57,6 +51,11 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionCloseNegotiation();
 
+                var connections = new List<ConnectionId>();
+                testServer.On<Connection.Open>((id, frame) =>
+                {
+                    connections.Add(id);
+                });
                 testServer.On<Channel.Open, Channel.OpenOk>((connectionId, frame) => new Channel.OpenOk());
                 testServer.On<Channel.Close, Channel.CloseOk>((connectionId, frame) => new Channel.CloseOk());
                 testServer.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
@@ -69,6 +68,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     closedChannels.Add(frame.Channel);
                     TryStop();
                 });
+                testServer.On<Basic.Cancel, Basic.CancelOk>((id, frame) => new Basic.CancelOk());
                 testServer.On<Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublish.Add(frame);
@@ -77,10 +77,20 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 DisposeAsyncOnTearDown(testServer.Start());
                 DisposeAsyncOnTearDown(testServer);
 
-                container.RegisterSingleton<IConnectionFactory>(() => new ConnectionFactory
+                container.RegisterSingleton(testServer.ToRabbitMqConnectionFactory);
+
+
+                void TryStop()
                 {
-                    Endpoint = new AmqpTcpEndpoint(testServer.Address.ToString(), testServer.Port)
-                });
+                    if (closedChannels.Count == NumberOfPublishes && _basicPublish.Count == NumberOfPublishes)
+                    {
+                        foreach (var connection in connections)
+                        {
+                            testServer.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
+                        }
+                        ServiceController.StopAsync();
+                    }
+                }
             }
 
             [Fact]
