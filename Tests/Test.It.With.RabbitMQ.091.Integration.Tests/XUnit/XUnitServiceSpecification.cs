@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Test.It.While.Hosting.Your.Windows.Service;
+using Test.It.While.Hosting.Your.Service;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
 {
-    public abstract class XUnitWindowsServiceSpecification<THostStarter> : WindowsServiceSpecification<THostStarter>,
+    public abstract class XUnitServiceSpecification<THostStarter> : ServiceSpecification<THostStarter>,
         IClassFixture<THostStarter>, IAsyncLifetime
-        where THostStarter : class, IWindowsServiceHostStarter, new()
+        where THostStarter : class, IServiceHostStarter, new()
     {
-        private readonly List<IDisposable> _disposables = new();
         private readonly List<IAsyncDisposable> _asyncDisposables = new();
 
         protected TextWriter Output { get; }
 
-        static XUnitWindowsServiceSpecification()
+        static XUnitServiceSpecification()
         {
             LogFactoryExtensions.InitializeOnce();
             NLogBuilderExtensions.ConfigureNLogOnce(new ConfigurationBuilder()
@@ -31,7 +30,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
             NLogCapturingTargetExtensions.RegisterOutputOnce();
         }
         
-        protected XUnitWindowsServiceSpecification(ITestOutputHelper output)
+        protected XUnitServiceSpecification(ITestOutputHelper output)
         {
             DisposeOnTearDown(With.XUnit.Output.WriteTo(output));
             Output = With.XUnit.Output.Writer;
@@ -41,7 +40,11 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
             T disposable)
             where T : IDisposable
         {
-            _disposables.Add(disposable);
+            _asyncDisposables.Add(new AsyncDisposableAction(() =>
+            {
+                disposable.Dispose();
+                return ValueTask.CompletedTask;
+            }));
             return disposable;
         }
 
@@ -53,49 +56,28 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
             return disposable;
         }
 
-        public Task InitializeAsync()
+        public async Task InitializeAsync()
         {
-            SetConfiguration(new THostStarter());
-            return Task.CompletedTask;
-        }
-
-        public async Task DisposeAsync()
-        {
-            var exceptions = new List<Exception>();
-            foreach (var disposable in _disposables)
+            try
             {
-                try
-                {
-                    disposable.Dispose();
-                }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
+                await SetConfigurationAsync(new THostStarter())
+                    .ConfigureAwait(false);
             }
-
-            foreach (var asyncDisposable in _asyncDisposables)
+            catch (Exception initException)
             {
                 try
                 {
-                    await asyncDisposable.DisposeAsync()
+                    await DisposeAsync()
                         .ConfigureAwait(false);
                 }
-                catch (Exception e)
+                catch (Exception disposeException)
                 {
-                    exceptions.Add(e);
+                    throw new AggregateException(initException, disposeException);
                 }
-            }
-
-            if (exceptions.Any())
-            {
-                if (exceptions.Count == 1)
-                {
-                    ExceptionDispatchInfo.Capture(exceptions.First()).Throw();
-                }
-
-                throw new AggregateException(exceptions);
+                throw;
             }
         }
+
+        public Task DisposeAsync() => _asyncDisposables.DisposeAllAsync();
     }
 }

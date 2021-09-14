@@ -20,16 +20,19 @@
         <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
         <PackageReference Include="NLog" Version="4.7.11" />
         <PackageReference Include="NLog.Web.AspNetCore" Version="4.14.0" />
-        <PackageReference Include="RabbitMQ.Client" Version="6.2.2" />
         <PackageReference Include="SimpleInjector" Version="3.3.2" />
-        <PackageReference Include="Test.It" version="2.1.0" />
-        <PackageReference Include="Test.It.While.Hosting.Your.Windows.Service" Version="3.0.0" />
-        <PackageReference Include="Test.It.With.Amqp" Version="2.0.0-pre-8f04c21" />
-        <PackageReference Include="Test.It.With.XUnit" version="2.2.1" />
-        <PackageReference Include="xunit" version="2.3.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+        <PackageReference Include="Test.It" version="3.0.3" />
+        <PackageReference Include="Test.It.While.Hosting.Your.Service" Version="4.0.1" />
+        <PackageReference Include="Test.It.With.XUnit" version="3.0.2" />
+        <PackageReference Include="xunit" version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\..\..\External\rabbitmq-dotnet-client\projects\RabbitMQ.Client\RabbitMQ.Client.csproj" />
+      <ProjectReference Include="..\..\..\Test.It.With.AMQP\Test.It.With.Amqp\Test.It.With.Amqp.csproj" />
       <ProjectReference Include="..\..\Test.It.With.RabbitMQ.091\Test.It.With.RabbitMQ.091.csproj" />
     </ItemGroup>
     <ItemGroup>

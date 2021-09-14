@@ -1,12 +1,12 @@
 ﻿using Test.It.Specifications;
-using Test.It.While.Hosting.Your.Windows.Service;
+using Test.It.While.Hosting.Your.Service;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
-    public class TestApplicationBuilder<TApplication> : DefaultWindowsServiceBuilder where TApplication : IApplication, new()
+    public class TestApplicationBuilder<TApplication> : DefaultServiceBuilder where TApplication : IApplication, new()
     {
-        public override IWindowsService Create(ITestConfigurer configurer)
+        public override IServiceHost Create(ITestConfigurer configurer)
         {
             var testApplicationSpecification = new TApplication();
             testApplicationSpecification.Configure(resolver =>
