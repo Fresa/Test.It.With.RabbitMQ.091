@@ -42,8 +42,9 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 
             protected override string[] StartParameters { get; } = { Parallelism.ToString() };
 
-            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
-            
+            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
+
             protected override void Given(IServiceContainer container)
             {
                 var channels = new ConcurrentDictionary<(ConnectionId, short), Channel.Open>();

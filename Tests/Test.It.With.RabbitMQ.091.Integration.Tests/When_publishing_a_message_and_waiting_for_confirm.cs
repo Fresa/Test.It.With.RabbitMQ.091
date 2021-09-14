@@ -38,8 +38,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             {
             }
 
-            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
-            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(5);
+            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
             protected override void Given(IServiceContainer container)
             {
