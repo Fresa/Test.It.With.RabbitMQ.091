@@ -1,5 +1,4 @@
-﻿using System;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using Test.It.With.Amqp;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
@@ -11,10 +10,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
             return new ConnectionFactory
             {
                 HostName = testFramework.Address.ToString(),
-                Port = testFramework.Port,
-                RequestedConnectionTimeout = TimeSpan.FromSeconds(5),
-                ContinuationTimeout = TimeSpan.FromSeconds(1),
-                HandshakeContinuationTimeout = TimeSpan.FromSeconds(1)
+                Port = testFramework.Port
             };
         }
     }
