@@ -39,7 +39,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
                 catch 
                 {
                 }
-                connection.Dispose();
+                // todo: disposing the connection times out sometimes because the connection implementation seems buggy and does not shutdown the background worker every time
+                //connection.Dispose();
             });
         }
     }

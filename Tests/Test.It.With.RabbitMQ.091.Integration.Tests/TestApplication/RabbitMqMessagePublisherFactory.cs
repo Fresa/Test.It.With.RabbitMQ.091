@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 
@@ -51,7 +49,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
                 catch
                 {
                 }
-                connection.Dispose();
+                // todo: disposing the connection times out sometimes because the connection implementation seems buggy and does not shutdown the background worker every time
+                //connection.Dispose();
             });
         }
     }

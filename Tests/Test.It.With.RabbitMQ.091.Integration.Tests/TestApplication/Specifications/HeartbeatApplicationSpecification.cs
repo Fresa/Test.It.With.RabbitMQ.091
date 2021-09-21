@@ -43,7 +43,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specificati
             catch 
             {
             }
-            _connection?.Dispose();
+            //_connection?.Dispose();
             _configurer.Dispose();
             _rabbitmqLogger.Dispose();
         }
