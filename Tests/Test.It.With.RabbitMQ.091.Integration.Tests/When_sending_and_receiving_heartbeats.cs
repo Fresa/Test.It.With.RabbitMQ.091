@@ -78,7 +78,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 }));
                 DisposeAsyncOnTearDown(testFramework);
 
-                container.RegisterSingleton(testFramework.ToRabbitMqConnectionFactory);
+                container.RegisterSingleton(server.ToRabbitMqConnectionFactory);
             }
 
             [Fact]

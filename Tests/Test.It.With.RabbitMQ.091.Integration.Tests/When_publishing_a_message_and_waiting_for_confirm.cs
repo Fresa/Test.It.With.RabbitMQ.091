@@ -107,7 +107,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 }));
                 DisposeAsyncOnTearDown(testServer);
 
-                container.RegisterSingleton(testServer.ToRabbitMqConnectionFactory);
+                container.RegisterSingleton(server.ToRabbitMqConnectionFactory);
 
                 void TryStop()
                 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Test.It.While.Hosting.Your.Service;
@@ -27,7 +26,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build());
-            NLogCapturingTargetExtensions.RegisterOutputOnce();
+            NLogExtensions.RegisterLoggingOnce();
         }
         
         protected XUnitServiceSpecification(ITestOutputHelper output)
