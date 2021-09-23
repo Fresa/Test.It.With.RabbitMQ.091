@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
@@ -29,10 +30,18 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 
         public void Dispose()
         {
-            foreach (var connection in _connections.Values)
+            Parallel.ForEach(_connections.Values, connection =>
             {
-                connection.Dispose();
-            }
+                try
+                {
+                    connection.Close(TimeSpan.FromSeconds(1));
+                }
+                catch 
+                {
+                }
+                // todo: disposing the connection times out sometimes because the connection implementation seems buggy and does not shutdown the background worker every time
+                //connection.Dispose();
+            });
         }
     }
 }

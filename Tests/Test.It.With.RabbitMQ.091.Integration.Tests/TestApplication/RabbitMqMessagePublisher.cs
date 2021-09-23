@@ -1,6 +1,5 @@
 ﻿using System;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Framing;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
 {
@@ -20,16 +19,18 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
         public PublishResult Publish<TMessage>(string key, TMessage message)
         {
             var correlationId = Guid.NewGuid().ToString();
-            _model.BasicPublish(_exchange, key, new BasicProperties
-            {
-                Type = message.GetType().FullName,
-                CorrelationId = correlationId
-            }, _serializer.Serialize(message));
+            
+            var properties = _model.CreateBasicProperties();
+            properties.Type = message.GetType().FullName;
+            properties.CorrelationId = correlationId;
+            
+            _model.BasicPublish(_exchange, key, properties, _serializer.Serialize(message));
             return new PublishResult(_model, correlationId);
         }
 
         public void Dispose()
         {
+            _model.Close();
             _model.Dispose();
         }
     }

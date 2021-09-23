@@ -60,12 +60,15 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specificati
 
         public void Stop()
         {
-            foreach (var messageConsumer in _messageConsumers)
+            try
             {
-                messageConsumer.Dispose();
+                Parallel.ForEach(_messageConsumers, consumer => consumer.Dispose());
             }
-            _configurer.Dispose();
-            _rabbitmqLogger.Dispose();
+            finally
+            {
+                _configurer.Dispose();
+                _rabbitmqLogger.Dispose();
+            }
         }
 
         public event Action<Exception> OnUnhandledException;

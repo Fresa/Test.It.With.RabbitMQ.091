@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
-using Should.Fluent;
-using Test.It.While.Hosting.Your.Windows.Service;
+using System.Collections.Generic;
+using FluentAssertions;
+using Log.It;
+using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp091.Protocol;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
 using Test.It.With.RabbitMQ091.Integration.Tests.XUnit;
@@ -17,60 +18,73 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_sending_and_receiving_heartbeats_over_rabbitmq
     {
-        public class When_sending_and_receiving_heartbeats : XUnitWindowsServiceSpecification<DefaultWindowsServiceHostStarter<TestApplicationBuilder<HeartbeatApplication>>>
+        public class When_sending_and_receiving_heartbeats : XUnitServiceSpecification<DefaultServiceHostStarter<TestApplicationBuilder<HeartbeatApplication>>>
         {
             private readonly ConcurrentBag<HeartbeatFrame<Heartbeat>> _heartbeats = new ConcurrentBag<HeartbeatFrame<Heartbeat>>();
-            private CancellationTokenSource _heartbeatCancelationToken = new CancellationTokenSource();
-            private bool _missingHeartbeat;
 
             public When_sending_and_receiving_heartbeats(ITestOutputHelper output) : base(output)
             {
             }
 
             protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
             protected override void Given(IServiceContainer container)
             {
-                var testServer = new AmqpTestFramework(Test.It.With.Amqp091.Protocol.Amqp091.ProtocolResolver);
+                var testFramework = AmqpTestFramework.WithSocket(Test.It.With.Amqp091.Protocol.Amqp091.ProtocolResolver);
+                var stopLock = new ExclusiveLock();
 
-                testServer
+                testFramework
                     .WithDefaultProtocolHeaderNegotiation()
                     .WithDefaultSecurityNegotiation(heartbeatInterval: TimeSpan.FromSeconds(1))
                     .WithDefaultConnectionOpenNegotiation()
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(1))
                     .WithDefaultConnectionCloseNegotiation();
 
-                testServer.On<Heartbeat>((connectionId, frame) =>
+                var connections = new List<ConnectionId>();
+                testFramework.On<Connection.Open>((id, frame) =>
                 {
-                    _heartbeatCancelationToken.Cancel(true);
+                    connections.Add(id);
+                });
+                testFramework.On<Connection.Close>((id, frame) =>
+                {
+                    connections.Remove(id);
+                });
+                testFramework.On<Heartbeat>((connectionId, frame) =>
+                {
                     _heartbeats.Add(frame);
-                    _heartbeatCancelationToken = new CancellationTokenSource();
-                    Task.Delay(4000)
-                        .ContinueWith(task =>
+                    DisposeOnTearDown(stopLock.TryAcquire(out var shouldStop));
+                    if (shouldStop)
+                    {
+                        foreach (var connection in connections)
                         {
-                            _missingHeartbeat = true;
-                            ServiceController.Stop();
-                        }, _heartbeatCancelationToken.Token);
+                            testFramework.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
+                        }
+                        ServiceController.StopAsync();
+                    }
                 });
 
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(task =>
+                var server = testFramework.Start();
+                DisposeAsyncOnTearDown(new AsyncDisposableAction(async () =>
                 {
-                    ServiceController.Stop();
-                });
+                    try
+                    {
+                        await server.DisposeAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        LogFactory.Create<SocketAmqpTestFramework>().Error(e, "Error when stopping socket server");
+                    }
+                }));
+                DisposeAsyncOnTearDown(testFramework);
 
-                container.RegisterSingleton(() => testServer.ConnectionFactory.ToRabbitMqConnectionFactory());
+                container.RegisterSingleton(server.ToRabbitMqConnectionFactory);
             }
 
             [Fact]
             public void It_should_have_received_heartbeats()
             {
-                _heartbeats.Should().Count.AtLeast(1);
-            }
-
-            [Fact] // todo: Doubtful quality of test. It's impossible to test that something does not happen. What is the purpose?
-            public void It_should_not_stop_receiving_heartbeats()
-            {
-                _missingHeartbeat.Should().Be.False();
+                _heartbeats.Should().HaveCountGreaterOrEqualTo(1);
             }
         }
     }

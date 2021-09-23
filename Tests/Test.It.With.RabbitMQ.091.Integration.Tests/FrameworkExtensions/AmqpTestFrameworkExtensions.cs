@@ -21,8 +21,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
                 .On<ProtocolHeader>((connectionId, frame) => testFramework.Send(connectionId,
                     new MethodFrame<Connection.Start>(frame.Channel, new Connection.Start
                     {
-                        VersionMajor = Octet.From((byte)frame.Message.Version.Major),
-                        VersionMinor = Octet.From((byte)frame.Message.Version.Minor),
+                        VersionMajor = Octet.From((byte) frame.Message.Version.Major),
+                        VersionMinor = Octet.From((byte) frame.Message.Version.Minor),
                         Locales = Longstr.From(Encoding.UTF8.GetBytes("en_US")),
                         Mechanisms = Longstr.From(Encoding.UTF8.GetBytes("PLAIN")),
                     })));
@@ -85,7 +85,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
         public static AmqpTestFramework WithDefaultConnectionCloseNegotiation(this AmqpTestFramework testFramework)
         {
             return testFramework
-                .On<Connection.Close, Connection.CloseOk>((connectionId, frame) => 
+                .On<Connection.Close, Connection.CloseOk>((connectionId, frame) =>
                     new Connection.CloseOk());
         }
 
@@ -110,7 +110,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
             }
             Schedule();
 
-            return new DisposableAction(() => cancelationTokenSource.Cancel());
+            return new DisposableActions(() => cancelationTokenSource.Cancel());
         }
 
         public static void Send<T>(this AmqpTestFramework testFramework, ConnectionId connectionId, short channel,

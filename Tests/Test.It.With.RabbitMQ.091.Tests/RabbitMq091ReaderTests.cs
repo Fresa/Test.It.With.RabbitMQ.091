@@ -1,4 +1,4 @@
-﻿using Should.Fluent;
+﻿using FluentAssertions;
 using Test.It.With.XUnit;
 using Xunit;
 
@@ -22,7 +22,7 @@ namespace Test.It.With.RabbitMQ091.Tests
         [Fact]
         public void It_should_parse_correctly()
         {
-            ((ByteArray)_readData).Bytes.Should().Equal(new byte[] { 0, 6, 1, 2, 3 });
+            ((ByteArray)_readData).Bytes.Should<byte>().BeEquivalentTo(new byte[] { 0, 6, 1, 2, 3 });
         }
     }
 }

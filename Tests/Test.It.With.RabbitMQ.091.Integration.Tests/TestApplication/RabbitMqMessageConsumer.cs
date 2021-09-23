@@ -25,7 +25,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
         {
             try
             {
-                _subscription.Invoke(_serializer.Deserialize<TMessage>(args.Body));
+                _subscription.Invoke(_serializer.Deserialize<TMessage>(args.Body.ToArray()));
                 _consumer.Model.BasicAck(args.DeliveryTag, false);
             }
             catch
@@ -38,9 +38,23 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
         {
             if (_consumer.Model.IsOpen)
             {
-                _consumer.Model.BasicCancel(_consumerTag);
+                try
+                {
+                    _consumer.Model.BasicCancelNoWait(_consumerTag);
+                }
+                catch 
+                {
+                }
             }
             _consumer.Received -= OnReceived;
+
+            try
+            {
+                _consumer.Model.Close();
+            }
+            catch 
+            {
+            }
             _consumer.Model.Dispose();
         }
     }

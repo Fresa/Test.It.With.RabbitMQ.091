@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using Log.It;
-using Microsoft.Diagnostics.Tracing;
 using RabbitMQ.Client.Logging;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
@@ -8,10 +8,13 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
     public sealed class RabbitMqLogEventListener : EventListener
     {
         private readonly ILogger _logger = LogFactory.Create<RabbitMqLogEventListener>();
-
-        public RabbitMqLogEventListener()
+        
+        protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            EnableEvents(RabbitMqClientEventSource.Log, EventLevel.LogAlways, RabbitMqClientEventSource.Keywords.Log);
+            if (eventSource.Name is "rabbitmq-dotnet-client" or "rabbitmq-client")
+            {
+                EnableEvents(eventSource, EventLevel.LogAlways);
+            }
         }
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
@@ -49,11 +52,6 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
                         break;
                 }
             }
-        }
-
-        public override void Dispose()
-        {
-            DisableEvents(RabbitMqClientEventSource.Log);
         }
     }
 }

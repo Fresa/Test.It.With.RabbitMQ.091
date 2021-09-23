@@ -36,7 +36,14 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specificati
 
         public void Stop()
         {
-            _connection.Dispose();
+            try
+            {
+                _connection.Close(TimeSpan.FromSeconds(1));
+            }
+            catch 
+            {
+            }
+            //_connection?.Dispose();
             _configurer.Dispose();
             _rabbitmqLogger.Dispose();
         }

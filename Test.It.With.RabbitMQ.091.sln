@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2037
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.RabbitMQ.091", "Test.It.With.RabbitMQ.091\Test.It.With.RabbitMQ.091.csproj", "{13323EEF-85D0-4F98-8C81-2571D3CF55AB}"
 EndProject
@@ -10,6 +10,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.RabbitMQ.091.Integration.Tests", "Tests\Test.It.With.RabbitMQ.091.Integration.Tests\Test.It.With.RabbitMQ.091.Integration.Tests.csproj", "{0FF4A047-3977-437D-9068-D375B118325F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.It.With.RabbitMQ.091.Tests", "Tests\Test.It.With.RabbitMQ.091.Tests\Test.It.With.RabbitMQ.091.Tests.csproj", "{7BD84E81-96AF-4DB9-9A97-C33BBBF59562}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{560C3606-738F-4161-8CE3-9159180CDE4C}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
