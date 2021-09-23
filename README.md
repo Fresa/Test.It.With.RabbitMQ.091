@@ -26,3 +26,6 @@ Since [rabbitmq-dotnet-client 6.x](https://github.com/rabbitmq/rabbitmq-dotnet-c
 
 ### Protocol Definitions
 It extends [AMQP 0.9.1](https://github.com/Fresa/Test.It.With.AMQP.091.Protocol) protocol definition with some [custom methods](https://github.com/Fresa/Test.It.With.RabbitMQ.091/tree/master/Test.It.With.RabbitMQ.091/Methods).
+
+### Logging
+See [Test.It.With.AMQP](https://github.com/Fresa/Test.It.With.AMQP#logging)
