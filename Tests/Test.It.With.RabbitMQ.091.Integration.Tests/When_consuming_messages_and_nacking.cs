@@ -38,7 +38,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 
             protected override string[] StartParameters { get; } = { Parallelism.ToString(), "true" };
 
-            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
+            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
             protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
             protected override void Given(IServiceContainer container)
