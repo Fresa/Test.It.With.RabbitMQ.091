@@ -24,6 +24,7 @@ namespace Test.It.With.RabbitMQ091
             }
 
             method = methodFactory();
+            method.ReadFrom(reader);
             return true;
         }
 
