@@ -30,7 +30,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication
             }
             catch
             {
-                _consumer.Model.BasicNack(args.DeliveryTag, false, false);
+                _consumer.Model.BasicNack(args.DeliveryTag, false, true);
             }
         }
 
