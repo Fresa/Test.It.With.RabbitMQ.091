@@ -24,6 +24,7 @@ namespace Test.It.With.RabbitMQ091
             }
 
             method = methodFactory();
+            method.ReadFrom(reader);
             return true;
         }
 
@@ -31,7 +32,11 @@ namespace Test.It.With.RabbitMQ091
         {
             { Confirm.ClassId, new Dictionary<int, Func<IMethod>> {
                 { Confirm.Select.MethodId, () => new Confirm.Select() },
-                { Confirm.SelectOk.MethodId, () => new Confirm.SelectOk() }}}
+                { Confirm.SelectOk.MethodId, () => new Confirm.SelectOk() }}},
+            { Basic.ClassId, new Dictionary<int, Func<IMethod>>
+            {
+                { Basic.Nack.MethodId, () => new Basic.Nack() }
+            }}
         };
     }
 }

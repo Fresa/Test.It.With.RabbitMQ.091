@@ -16,6 +16,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
         where THostStarter : class, IServiceHostStarter, new()
     {
         private readonly List<IAsyncDisposable> _asyncDisposables = new();
+        private readonly IDisposable _outputWriter;
 
         protected TextWriter Output { get; }
 
@@ -31,7 +32,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
         
         protected XUnitServiceSpecification(ITestOutputHelper output)
         {
-            DisposeOnTearDown(With.XUnit.Output.WriteTo(output));
+            _outputWriter = With.XUnit.Output.WriteTo(output);
             Output = With.XUnit.Output.Writer;
         }
 
@@ -77,6 +78,12 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
             }
         }
 
-        public Task DisposeAsync() => _asyncDisposables.DisposeAllAsync();
+        public Task DisposeAsync()
+        {
+            var task = _asyncDisposables
+                .DisposeAllAsync();
+            task.ContinueWith(_ => _outputWriter.Dispose());
+            return task;
+        }
     }
 }

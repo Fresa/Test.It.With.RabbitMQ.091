@@ -32,6 +32,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specificati
         public void Start(params string[] args)
         {
             var threads = int.Parse(args.First());
+            var throws = args.Length >= 2 && bool.Parse(args[1]);
             var messageConsumerFactory = _configurer.Resolve<IMessageConsumerFactory>();
             var messagePublisherFactory = _configurer.Resolve<IMessagePublisherFactory>();
 
@@ -45,11 +46,14 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specificati
                         "routing" + i % 2,
                         message =>
                         {
-                            using (var messagePublisher = messagePublisherFactory.Create("myExchange" + i % 2))
+                            if (throws)
                             {
-                                messagePublisher.Publish("myMessage",
-                                    new TestMessage(i + ": " + message.Message));
+                                throw new InvalidOperationException("Error occured");
                             }
+
+                            using var messagePublisher = messagePublisherFactory.Create("myExchange" + i % 2);
+                            messagePublisher.Publish("myMessage",
+                                new TestMessage(i + ": " + message.Message));
                         }));
                 });
             }).ContinueWith(task =>
