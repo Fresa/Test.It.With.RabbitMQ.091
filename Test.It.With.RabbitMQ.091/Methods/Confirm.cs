@@ -10,8 +10,8 @@ namespace Test.It.With.RabbitMQ091.Methods
         public class Select : IRespond<SelectOk>, IClientMethod
         {
             internal const int MethodId = 10;
-            public int ProtocolClassId { get; } = ClassId;
-            public int ProtocolMethodId { get; } = MethodId;
+            public int ProtocolClassId => ClassId;
+            public int ProtocolMethodId => MethodId;
 
             public bool Nowait { get; set; }
 
@@ -44,8 +44,8 @@ namespace Test.It.With.RabbitMQ091.Methods
         public class SelectOk : IServerMethod, INonContentMethod
         {
             internal const int MethodId = 11;
-            public int ProtocolClassId { get; } = ClassId;
-            public int ProtocolMethodId { get; } = MethodId;
+            public int ProtocolClassId => ClassId;
+            public int ProtocolMethodId => MethodId;
 
             public bool SentOnValidChannel(int channel)
             {
@@ -64,7 +64,7 @@ namespace Test.It.With.RabbitMQ091.Methods
 
             public Type[] Responses()
             {
-                return new Type[0];
+                return Type.EmptyTypes;
             }
         }
     }

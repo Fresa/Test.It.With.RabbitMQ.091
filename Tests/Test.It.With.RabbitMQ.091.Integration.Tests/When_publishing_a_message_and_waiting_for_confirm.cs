@@ -29,8 +29,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangeDeclare =
                 new ConcurrentBag<MethodFrame<Exchange.Declare>>();
 
-            private readonly ConcurrentBag<MethodFrame<Amqp091.Protocol.Basic.Publish>> _basicPublish =
-                new ConcurrentBag<MethodFrame<Amqp091.Protocol.Basic.Publish>>();
+            private readonly ConcurrentBag<MethodFrame<Basic.Publish>> _basicPublish =
+                new ConcurrentBag<MethodFrame<Basic.Publish>>();
 
             private bool _selectOkSent;
 
@@ -75,7 +75,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     channelClosed = true;
                     TryStop();
                 });
-                testServer.On<Amqp091.Protocol.Basic.Publish>((connectionId, frame) =>
+                testServer.On<Basic.Publish>((connectionId, frame) =>
                 {
                     _basicPublish.Add(frame);
                     testServer.Send(connectionId,

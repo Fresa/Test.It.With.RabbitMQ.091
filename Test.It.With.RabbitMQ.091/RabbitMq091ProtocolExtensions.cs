@@ -12,7 +12,7 @@ namespace Test.It.With.RabbitMQ091
             method = default;
 
             var classId = reader.ReadShortUnsignedInteger();
-            if (_classRegister.TryGetValue(classId, out var methodRegister) == false)
+            if (ClassRegister.TryGetValue(classId, out var methodRegister) == false)
             {
                 return false;
             }
@@ -28,14 +28,16 @@ namespace Test.It.With.RabbitMQ091
             return true;
         }
 
-        private readonly Dictionary<int, Dictionary<int, Func<IMethod>>> _classRegister = new Dictionary<int, Dictionary<int, Func<IMethod>>>
+        private static readonly Dictionary<int, Dictionary<int, Func<IMethod>>> ClassRegister = new Dictionary<int, Dictionary<int, Func<IMethod>>>
         {
             { Confirm.ClassId, new Dictionary<int, Func<IMethod>> {
                 { Confirm.Select.MethodId, () => new Confirm.Select() },
                 { Confirm.SelectOk.MethodId, () => new Confirm.SelectOk() }}},
             { Basic.ClassId, new Dictionary<int, Func<IMethod>>
             {
-                { Basic.Nack.MethodId, () => new Basic.Nack() }
+                { Basic.Nack.MethodId, () => new Basic.Nack() },
+                { new Basic.Ack().ProtocolMethodId, () => new Basic.Ack() },
+                { new Basic.Publish().ProtocolMethodId, () => new Basic.Publish() }
             }}
         };
     }
