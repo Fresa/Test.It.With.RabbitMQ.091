@@ -10,22 +10,16 @@
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
     <ItemGroup>
-        <PackageReference Include="FakeItEasy" version="3.3.2" />
         <PackageReference Include="FluentAssertions" Version="6.1.0" />
         <PackageReference Include="Log.It" Version="3.0.3" />
         <PackageReference Include="Log.It.With.NLog" Version="2.0.0" />
-        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
         <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-        <PackageReference Include="NLog" Version="4.7.11" />
         <PackageReference Include="NLog.Web.AspNetCore" Version="4.14.0" />
         <PackageReference Include="RabbitMQ.Client" Version="6.2.2" />
         <PackageReference Include="SimpleInjector" Version="3.3.2" />
-        <PackageReference Include="Test.It" version="3.0.3" />
         <PackageReference Include="Test.It.While.Hosting.Your.Service" Version="4.0.1" />
-        <PackageReference Include="Test.It.With.Amqp" Version="2.0.0" />
+        <PackageReference Include="Test.It.With.Amqp" Version="2.0.2" />
         <PackageReference Include="Test.It.With.XUnit" version="3.0.2" />
         <PackageReference Include="xunit" version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
