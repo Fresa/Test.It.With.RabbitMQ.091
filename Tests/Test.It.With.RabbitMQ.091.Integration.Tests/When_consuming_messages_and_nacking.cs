@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Log.It;
 using Newtonsoft.Json;
 using Test.It.While.Hosting.Your.Service;
 using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp091.Protocol;
-using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
@@ -29,6 +28,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             private readonly ConcurrentBag<MethodFrame<Queue.Bind>> _queuesBound = new();
             private readonly ConcurrentBag<MethodFrame<Basic.Consume>> _basicConsumes = new();
             private readonly ConcurrentBag<MethodFrame<Methods.Basic.Nack>> _nacks = new();
+            private readonly SemaphoreSlim _waitForAllChannelsClosed = new(0);
 
             public When_consuming_messages_and_nacking(ITestOutputHelper output) : base(output)
             {
@@ -53,26 +53,19 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionCloseNegotiation();
 
-                var connections = new List<ConnectionId>();
-                testFramework.On<Connection.Open>((id, frame) =>
-                {
-                    connections.Add(id);
-                });
-                testFramework.On<Connection.Close>((id, frame) =>
-                {
-                    connections.Remove(id);
-                });
                 testFramework.On<Channel.Open, Channel.OpenOk>((connectionId, frame) =>
                 {
                     channels.TryAdd((connectionId, frame.Channel), frame.Message);
                     return new Channel.OpenOk();
                 });
-                testFramework.On<Channel.Close, Channel.CloseOk>((connectionId, frame) =>
+                testFramework.On<Channel.CloseOk>((connectionId, frame) =>
                 {
                     channels.TryRemove((connectionId, frame.Channel), out _);
-                    return new Channel.CloseOk();
+                    if (channels.IsEmpty)
+                    {
+                        _waitForAllChannelsClosed.Release();
+                    }
                 });
-                testFramework.On<Channel.CloseOk>((id, frame) => { });
                 testFramework.On<Exchange.Declare, Exchange.DeclareOk>((connectionId, frame) =>
                 {
                     _exchangesDeclared.Add(frame);
@@ -132,37 +125,29 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 });
 
                 var server = testFramework.Start();
-                DisposeAsyncOnTearDown(new AsyncDisposableAction(async () =>
-                {
-                    try
-                    {
-                        await server.DisposeAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        LogFactory.Create<SocketAmqpTestFramework>().Error(e, "Error when stopping socket server");
-                    }
-                }));
+                DisposeAsyncOnTearDown(server);
                 DisposeAsyncOnTearDown(testFramework);
 
                 container.RegisterSingleton(server.ToRabbitMqConnectionFactory);
 
-                void TryStop()
+                async Task TryStop()
                 {
                     if (_nacks.Count == Parallelism)
                     {
-                        foreach (var ((connectionId, channel), _) in channels)
+                        // The RabbitMQ client is very sensitive about closing channels and connections.
+                        // It does not necessary respond to connection close so we let the client close the connections
+                        foreach (var (connectionId, channel) in channels.Keys.ToArray())
                         {
                             testFramework.Send(connectionId,
                                 new MethodFrame<Channel.Close>(channel,
                                     new Channel.Close()
                                     { ReplyCode = ReplyCode.From(200), ReplyText = ReplyText.From("bye") }));
                         }
-                        foreach (var connection in connections)
-                        {
-                            testFramework.Send(connection, new MethodFrame<Connection.Close>(0, new Connection.Close()));
-                        }
-                        ServiceController.StopAsync();
+
+                        await _waitForAllChannelsClosed.WaitAsync(Timeout)
+                            .ConfigureAwait(false);
+                        await ServiceController.StopAsync()
+                            .ConfigureAwait(false);
                     }
                 }
             }
