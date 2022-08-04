@@ -51,9 +51,6 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     .WithDefaultConnectionOpenNegotiation()
                     .WithHeartbeats(interval: TimeSpan.FromSeconds(5))
                     .WithDefaultConnectionCloseNegotiation();
-                _server = _testFramework.Start();
-                DisposeAsyncOnTearDown(_server);
-                DisposeAsyncOnTearDown(_testFramework);
 
                 _testFramework.On<Channel.Open, Channel.OpenOk>((connectionId, frame) =>
                 {
@@ -117,6 +114,10 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 });
                 _testFramework.On<Basic.Cancel, Basic.CancelOk>((connectionId, frame) =>
                     new Basic.CancelOk { ConsumerTag = frame.Message.ConsumerTag });
+
+                _server = _testFramework.Start();
+                DisposeAsyncOnTearDown(_server);
+                DisposeAsyncOnTearDown(_testFramework);
 
                 container.RegisterSingleton(() => _server.ToRabbitMqConnectionFactory(automaticRecovery: true));
             }
