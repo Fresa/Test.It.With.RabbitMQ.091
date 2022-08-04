@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +9,7 @@ using Test.It.With.Amqp;
 using Test.It.With.Amqp.Messages;
 using Test.It.With.Amqp.NetworkClient;
 using Test.It.With.Amqp091.Protocol;
+using Test.It.With.RabbitMQ091.Integration.Tests.Common;
 using Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions;
 using Test.It.With.RabbitMQ091.Integration.Tests.TestApplication.Specifications;
 using Test.It.With.RabbitMQ091.Integration.Tests.XUnit;
@@ -22,36 +21,6 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
 {
     namespace Given_a_client_application_receiving_messages_over_rabbitmq
     {
-        internal class ConcurrentHashSet<T> : IEnumerable<T>
-        {
-            private readonly ConcurrentDictionary<T, T> _data;
-
-            public ConcurrentHashSet(params T[] data) => 
-                _data = new ConcurrentDictionary<T, T>(data.Select(value => new KeyValuePair<T, T>(value, value)));
-
-            internal bool TryRemove(T value)
-            {
-                return _data.TryRemove(value, out _);
-            }
-
-            internal bool TryAdd(T value)
-            {
-                return _data.TryAdd(value, value);
-            }
-
-            internal bool IsEmpty => _data.IsEmpty;
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                return _data.Keys.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
-
         public class When_consuming_messages_and_broker_disconnects : XUnitServiceSpecification<DefaultServiceHostStarter<TestApplicationBuilder<MessageConsumingApplication>>>
         {
             private readonly ConcurrentBag<MethodFrame<Exchange.Declare>> _exchangesDeclared = new ConcurrentBag<MethodFrame<Exchange.Declare>>();
@@ -68,9 +37,9 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             {
             }
 
-            //protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
-            //protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
-            private const int Consumers = 1;
+            protected override TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+            protected override TimeSpan StopTimeout { get; set; } = TimeSpan.FromSeconds(10);
+            private const int Consumers = 2;
             protected override string[] StartParameters { get; } = { Consumers.ToString() };
 
             protected override void Given(IServiceContainer container)
@@ -95,6 +64,15 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                     });
                     return new Channel.OpenOk();
                 });
+                _testFramework.On<Channel.Close, Channel.CloseOk>((connectionId, frame) =>
+                {
+                    _connections.AddOrUpdate(connectionId, _ => new ConcurrentHashSet<short>(), (_, channels) =>
+                    {
+                        channels.TryRemove(frame.Channel);
+                        return channels;
+                    });
+                    return new Channel.CloseOk();
+                });
                 _testFramework.On<Channel.CloseOk>((id, frame) =>
                 {
                     _connections.AddOrUpdate(id, _ => new ConcurrentHashSet<short>(), (_, channels) =>
@@ -115,7 +93,7 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 _testFramework.On<Queue.Declare, Queue.DeclareOk>((connectionId, frame) =>
                 {
                     _queuesDeclared.Add(frame);
-                    return new Queue.DeclareOk();
+                    return new Queue.DeclareOk { Queue = frame.Message.Queue };
                 });
                 _testFramework.On<Queue.Bind, Queue.BindOk>((connectionId, frame) =>
                 {
@@ -140,13 +118,16 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                 _testFramework.On<Basic.Cancel, Basic.CancelOk>((connectionId, frame) =>
                     new Basic.CancelOk { ConsumerTag = frame.Message.ConsumerTag });
 
-                container.RegisterSingleton(_server.ToRabbitMqConnectionFactory);
+                container.RegisterSingleton(() => _server.ToRabbitMqConnectionFactory(automaticRecovery: true));
             }
 
             protected override async Task WhenAsync(CancellationToken cancellationToken)
             {
-                await _consumeReceived.WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                for (var i = 0; i < Consumers; i++)
+                {
+                    await _consumeReceived.WaitAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
                 var closedConnection = _connections.First().Key;
                 _connections.TryRemove(closedConnection, out _);
                 await _server.DisconnectAsync(closedConnection, cancellationToken)
@@ -174,64 +155,44 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
             [Fact]
             public void It_should_have_declared_exchanges()
             {
-                _exchangesDeclared.Should().HaveCount(2)
+                _exchangesDeclared.Should().HaveCount(3)
                     .And
-                    .OnlyContain(frame => frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")));
+                    .OnlyContain(frame =>
+                        (frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")) ||
+                         frame.Message.Exchange.Equals(ExchangeName.From("myExchange1"))) &&
+                        frame.Message.Type.Equals(Shortstr.From("topic")));
             }
 
             [Fact]
             public void It_should_have_declared_queues()
             {
-                _queuesDeclared.Should().HaveCount(2)
+                _queuesDeclared.Should().HaveCount(3)
                     .And
-                    .OnlyContain(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
+                    .OnlyContain(frame => frame.Message.Queue.Value.Equals("queue0") ||
+                                          frame.Message.Queue.Value.Equals("queue1"));
             }
 
-            //[Fact]
-            //public void It_should_have_declared_queues_with_name()
-            //{
-            //    _queuesDeclared.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
-            //    _queuesDeclared.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue1")));
-            //}
+            [Fact]
+            public void It_should_have_bound_the_queues()
+            {
+                _queuesBound.Should().HaveCount(3)
+                    .And
+                    .OnlyContain(frame => (frame.Message.Queue.Equals(QueueName.From("queue0")) &&
+                            frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")) &&
+                            frame.Message.RoutingKey.Equals(Shortstr.From("routing0"))) ||
+                            frame.Message.Queue.Equals(QueueName.From("queue1")) &&
+                            frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")) &&
+                            frame.Message.RoutingKey.Equals(Shortstr.From("routing1")));
+            }
 
-            //[Fact]
-            //public void It_should_have_bound_the_queues()
-            //{
-            //    _queuesBound.Should().HaveCount(2);
-            //}
-
-            //[Fact]
-            //public void It_should_have_bound_queues_to_exchanges()
-            //{
-            //    _queuesBound.Should().ContainSingle(frame => 
-            //            frame.Message.Queue.Equals(QueueName.From("queue0")) &&
-            //            frame.Message.Exchange.Equals(ExchangeName.From("myExchange0")) &&
-            //            frame.Message.RoutingKey.Equals(Shortstr.From("routing0")));
-
-            //    _queuesBound.Should().ContainSingle(frame => 
-            //            frame.Message.Queue.Equals(QueueName.From("queue1")) &&
-            //            frame.Message.Exchange.Equals(ExchangeName.From("myExchange1")) &&
-            //            frame.Message.RoutingKey.Equals(Shortstr.From("routing1")));
-            //}
-
-            //[Fact]
-            //public void It_should_have_declared_an_exchange_with_type()
-            //{
-            //    _exchangesDeclared.Should().Contain(frame => frame.Message.Type.Equals(Shortstr.From("topic")));
-            //}
-
-            //[Fact]
-            //public void It_should_have_starting_consuming_messages()
-            //{
-            //    _basicConsumes.Should().HaveCount(2);
-            //}
-
-            //[Fact]
-            //public void It_should_have_starting_consuming_messages_from_queues()
-            //{
-            //    _basicConsumes.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue0")));
-            //    _basicConsumes.Should().ContainSingle(frame => frame.Message.Queue.Equals(QueueName.From("queue1")));
-            //}
+            [Fact]
+            public void It_should_have_starting_consuming_messages()
+            {
+                _basicConsumes.Should().HaveCount(3)
+                    .And
+                    .OnlyContain(frame => frame.Message.Queue.Equals(QueueName.From("queue0")) ||
+                                          frame.Message.Queue.Equals(QueueName.From("queue1")));
+            }
         }
     }
 }
