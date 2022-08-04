@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using System;
+using RabbitMQ.Client;
 using Test.It.With.Amqp.NetworkClient;
 
 namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
@@ -11,7 +12,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.FrameworkExtensions
             {
                 HostName = server.Address.ToString(),
                 Port = server.Port,
-                AutomaticRecoveryEnabled = false
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.Zero
             };
         }
     }
