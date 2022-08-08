@@ -19,7 +19,7 @@
         <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
         <PackageReference Include="SimpleInjector" Version="3.3.2" />
         <PackageReference Include="Test.It.While.Hosting.Your.Service" Version="4.0.1" />
-        <PackageReference Include="Test.It.With.Amqp" Version="2.0.2" />
+        <PackageReference Include="Test.It.With.Amqp" Version="2.1.1" />
         <PackageReference Include="Test.It.With.XUnit" version="3.0.2" />
         <PackageReference Include="xunit" version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">

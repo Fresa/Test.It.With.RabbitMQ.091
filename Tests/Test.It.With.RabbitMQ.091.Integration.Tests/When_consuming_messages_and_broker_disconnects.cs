@@ -130,7 +130,8 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests
                         .ConfigureAwait(false);
                 }
                 var closedConnection = _connections.First().Key;
-                _connections.TryRemove(closedConnection, out _);
+                _connections.TryRemove(closedConnection, out var closedConnectionChannels)
+                    .Should().BeTrue("there should be a connection to close");
                 await _server.DisconnectAsync(closedConnection, cancellationToken)
                     .ConfigureAwait(false);
                 await _consumeReceived.WaitAsync(cancellationToken)
