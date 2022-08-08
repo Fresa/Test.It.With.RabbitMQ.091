@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Test.It.While.Hosting.Your.Service;
@@ -58,9 +59,10 @@ namespace Test.It.With.RabbitMQ091.Integration.Tests.XUnit
 
         public async Task InitializeAsync()
         {
+            using var cts = new CancellationTokenSource(Timeout);
             try
             {
-                await SetConfigurationAsync(new THostStarter())
+                await SetConfigurationAsync(new THostStarter(), cts.Token)
                     .ConfigureAwait(false);
             }
             catch (Exception initException)
