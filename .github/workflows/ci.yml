@@ -90,6 +90,6 @@ jobs:
           tag-name: v${{ steps.release.outputs.major-version }}.${{ steps.release.outputs.minor-version }}
           description: v${{ steps.version.outputs.version }}
     - name: Pack
-      run: dotnet pack Test.It.With.RabbitMQ.091/Test.It.With.RabbitMQ.091.csproj -c Release -o nuget-packages -p:PackageVersion=${{ steps.release.outputs.version }} -p:PackageReleaseNotes="${{ steps.release_notes.outputs.release_notes }}"
+      run: dotnet pack Test.It.With.RabbitMQ.091/Test.It.With.RabbitMQ.091.csproj -c Release -o nuget-packages -p:PackageVersion=${{ steps.version.outputs.version }} -p:PackageReleaseNotes="${{ steps.release_notes.outputs.release_notes }}"
     - name: Publish to nuget.org
-      run: dotnet nuget push nuget-packages/Test.It.With.RabbitMQ.091.${{ steps.release.outputs.version }}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push nuget-packages/Test.It.With.RabbitMQ.091.${{ steps.version.outputs.version }}.nupkg --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
